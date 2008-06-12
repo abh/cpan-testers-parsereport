@@ -1,5 +1,14 @@
-Revision history for CPAN-Testers-ParseReport
+2008-06-12  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
-0.01    Date/time
-        First version, released on an unsuspecting world.
+	* release 0.0.1
 
+  * just the bare script I'm currently working with. very early alpha
+	quality
+
+
+	Local Variables:
+	mode: change-log
+	change-log-default-name: "Changes"
+	tab-width: 2
+	left-margin: 2
+	End:
