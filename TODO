@@ -1,0 +1,11 @@
+2008-06-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* new switch: --cpantesters-format=yaml
+
+
+	Local Variables:
+	mode: change-log
+	change-log-default-name: "TODO"
+	tab-width: 2
+	left-margin: 2
+	End:
