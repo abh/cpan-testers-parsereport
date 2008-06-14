@@ -1,5 +1,13 @@
 2008-06-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
+	* move code from script to module
+
+	* POE-Component-Proxy-TCP: the html page exposes a bug, maybe the same
+	as DateTime-Format-Strptime-1.0702: the HTML is not up to date while the
+	YAML is.
+
+	* write a test for the switches
+
 	* new switch: --cpantesters-format=yaml
 
 

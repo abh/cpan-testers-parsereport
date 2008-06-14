@@ -10,7 +10,7 @@ ctgetreports - Quickly fetch cpantesters results with all reports
 
 =head1 DESCRIPTION
 
-!!!!Alert: alpha quality software!!!!
+!!!!Alert: alpha quality software, subject to change without warning!!!!
 
 The intent is to get at both the summary at cpantesters and the
 individual reports and parse the reports and collect the data for
@@ -112,17 +112,20 @@ sub Usage () {
 };
 our %Opt;
 GetOptions(\%Opt,
-           "local!",    # use a local *.html if present even if older than 24 hours
+           "dumpvars=s", # list all queryable variables
+           "interactive|i!", # asks if you want to see it
+           "local!",     # use a local *.html if present even if older than 24 hours
            "mirrorhtmlonly!",
-           "q=s\@",     #
-           "allvars=s", # list all queryable variables
-           "vdistro=s", # versioned distro if we do not want the most recent
-           "verbose+",  # feedback during download where we stand
+           "pager=s",    # defaults to less
+           "q=s\@",      #
+           "vdistro=s",  # versioned distro if we do not want the most recent
+           "verbose+",   # feedback during download where we stand
           ) or die Usage;
 
 my $ua = LWP::UserAgent->new;
 $ua->parse_head(0);
 
+$Opt{pager} ||= "less";
 my @q = @{$Opt{q}||[]};
 @q = qw(meta:perl conf:archname conf:usethreads conf:optimize meta:writer meta:from) unless @q;
 
@@ -130,18 +133,18 @@ if (! @ARGV) {
     die Usage;
 }
 
-if ($Opt{allvars}) {
+if ($Opt{dumpvars}) {
     eval { require YAML::Syck };
     if ($@) {
-        die "YAML::Syck required for allvars option: $@";
+        die "YAML::Syck required for dumpvars option: $@";
     }
 }
 
 my $ROOT = "$ENV{HOME}/var/cpantesters";
 
 $|=1;
-for my $distro (@ARGV) {
-    my %allvars;
+DISTRO: for my $distro (@ARGV) {
+    my %dumpvars;
     my $cts_dir = "$ROOT/cpantesters-show";
     mkpath $cts_dir;
     my $ctarget = "$cts_dir/$distro.html";
@@ -322,27 +325,28 @@ for my $distro (@ARGV) {
             }
             if ($in_summary) {
                 # we do that first three lines a bit too often
-                my $qr = $Opt{allvars} || "";
+                my $qr = $Opt{dumpvars} || "";
                 $qr = qr/$qr/ if $qr;
                 my %conf_vars = map {($_ => 1)} grep { /^conf:/ } @q;
 
                 if (/^\s*$/ || m|</pre>|) {
                     $in_summary = 0;
                 } else {
-                    while (my($k,$v) = /\G,?\s+([^=]+)=('[^']+?'|\S+)/gc) {
-                        $k = "conf:$k";
+                    my(%kv) = /\G,?\s*([^=]+)=('[^']+?'|\S+)/gc;
+                    while (my($k,$v) = each %kv) {
+                        my $ck = "conf:$k";
                         $v =~ s/,$//;
                         if ($v =~ /^'(.*)'$/) {
                             $v = $1;
                         }
                         $v =~ s/^\s+//;
                         $v =~ s/\s+$//;
-                        # $DB::single = $k eq "conf:cc"
-                        if ($qr && $k =~ $qr) {
-                            $allvars{$k}{$v}{$ok}++;
+                        $DB::single = $ck eq "conf:archname";
+                        if ($qr && $ck =~ $qr) {
+                            $dumpvars{$ck}{$v}{$ok}++;
                         }
-                        if ($conf_vars{$k}) {
-                            $extract{$k} = $v;
+                        if ($conf_vars{$ck}) {
+                            $extract{$ck} = $v;
                         }
                     }
                 }
@@ -435,11 +439,11 @@ for my $distro (@ARGV) {
             push @previous_line, $_;
         } # LINE
         my $diag = "";
-        if (my $qr = $Opt{allvars}) {
+        if (my $qr = $Opt{dumpvars}) {
             $qr = qr/$qr/;
             while (my($k,$v) = each %extract) {
                 if ($k =~ $qr) {
-                    $allvars{$k}{$v}{$ok}++;
+                    $dumpvars{$k}{$v}{$ok}++;
                 }
             }
         }
@@ -448,9 +452,32 @@ for my $distro (@ARGV) {
             $diag .= " $want\[$have]";
         }
         printf " %-4s %8d%s\n", $ok, $id, $diag;
+        if ($Opt{interactive}) {
+            require IO::Prompt;
+            local @ARGV;
+            local $ARGV;
+            my $ans = IO::Prompt::prompt
+                (
+                 -p => "View $id? ",
+                 -d => "y",
+                 -u => qr/[ynq]/,
+                 -onechar,
+                );
+            print "\n";
+            if ($ans eq "y") {
+                open my $ifh, "<", $target or die "Could not open $target: $!";
+                open my $lfh, "|-", $Opt{pager} or die "Could not fork '$Opt{pager}': $!";
+                local $/;
+                print {$lfh} <$ifh>;
+                close $ifh or die "Could not close $target: $!";
+                close $lfh or die "Could not close pager: $!"
+            } elsif ($ans eq "q") {
+                last DISTRO;
+            }
+        }
     }
-    if ($Opt{allvars}) {
-        print YAML::Syck::Dump(\%allvars);
+    if ($Opt{dumpvars}) {
+        print YAML::Syck::Dump(\%dumpvars);
     }
 }
 __END__
