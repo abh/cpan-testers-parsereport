@@ -10,7 +10,7 @@ my @s = qw(
            bin/ctgetreports
           );
 
-my $tests_per_loop = 1;
+my $tests_per_loop = 3;
 my $plan = scalar @s * $tests_per_loop;
 plan tests => $plan;
 
@@ -24,7 +24,19 @@ for my $s (1..@s) {
   }
   my $ret = close $fh;
   ok 1==$ret, "$script:-c:$ret";
+  open $fh, "-|", qq{"$^X" "-Ilib" "$script" "-help" 2>&1} or die "could not fork: $!";
+  my $seen_usage = 0;
+  while (<$fh>) {
+    $seen_usage++ if /Usage:/;
+  }
+  my $ret = close $fh;
+  ok 1==$ret, "$script:-help:ret=$ret";
+  ok 0<$seen_usage, "$script:-help:su=$seen_usage";
 }
 
 __END__
 
+# Local Variables:
+# mode: cperl
+# cperl-indent-level: 2
+# End:
