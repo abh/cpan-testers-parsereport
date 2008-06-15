@@ -1,11 +1,12 @@
 2008-06-15  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
+	* should not be dependent on the HTML markup provided by cpantesters
+	(should read NNTP version)
+
 	* Should be able to produce CPAN::Testers::Report objects. Should be
 	able to parse individual test results.
 
 2008-06-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
-
-	* move code from script to module
 
 	* POE-Component-Proxy-TCP: the html page exposes a bug, maybe the same
 	as DateTime-Format-Strptime-1.0702: the HTML is not up to date while the

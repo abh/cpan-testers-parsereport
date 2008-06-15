@@ -124,5 +124,6 @@ if ($Opt{dumpvars}) {
 $|=1;
 DISTRO: for my $distro (@ARGV) {
     CPAN::Testers::ParseReport::parse_distro($distro,%Opt);
+    last DISTRO if $CPAN::Testers::ParseReport::Signal;
 }
 __END__
