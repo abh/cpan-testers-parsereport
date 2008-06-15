@@ -118,13 +118,6 @@ GetOptions(\%Opt,
            "verbose+",   # feedback during download where we stand
           ) or die Usage;
 
-my $ua = LWP::UserAgent->new;
-$ua->parse_head(0);
-
-$Opt{pager} ||= "less";
-my @q = @{$Opt{q}||[]};
-@q = qw(meta:perl conf:archname conf:usethreads conf:optimize meta:writer meta:from) unless @q;
-
 if (! @ARGV) {
     die Usage;
 }
@@ -136,11 +129,12 @@ if ($Opt{dumpvars}) {
     }
 }
 
-$Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
-
 $|=1;
 DISTRO: for my $distro (@ARGV) {
     my %dumpvars;
+    our $ua;
+    our @q;
+    $Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
     my $cts_dir = "$Opt{cachedir}/cpantesters-show";
     mkpath $cts_dir;
     my $ctarget = "$cts_dir/$distro.html";
@@ -152,6 +146,10 @@ DISTRO: for my $distro (@ARGV) {
             print "(timestamp $timestamp GMT)\n";
         }
         print "Fetching $ctarget..." if $Opt{verbose};
+        unless ($ua) {
+            $ua = LWP::UserAgent->new;
+            $ua->parse_head(0);
+        }
         my $resp = $ua->mirror("http://cpantesters.perl.org/show/$distro.html",$ctarget);
         if ($resp->is_success) {
             print "DONE\n" if $Opt{verbose};
@@ -323,6 +321,9 @@ DISTRO: for my $distro (@ARGV) {
                 # we do that first three lines a bit too often
                 my $qr = $Opt{dumpvars} || "";
                 $qr = qr/$qr/ if $qr;
+                @q = @{$Opt{q}||[]};
+                @q = qw(meta:perl conf:archname conf:usethreads conf:optimize meta:writer meta:from) unless @q;
+
                 my %conf_vars = map {($_ => 1)} grep { /^conf:/ } @q;
 
                 if (/^\s*$/ || m|</pre>|) {
@@ -337,7 +338,7 @@ DISTRO: for my $distro (@ARGV) {
                         }
                         $v =~ s/^\s+//;
                         $v =~ s/\s+$//;
-                        $DB::single = $ck eq "conf:archname";
+                        # $DB::single = $ck eq "conf:archname";
                         if ($qr && $ck =~ $qr) {
                             $dumpvars{$ck}{$v}{$ok}++;
                         }
@@ -462,6 +463,7 @@ DISTRO: for my $distro (@ARGV) {
             print "\n";
             if ($ans eq "y") {
                 open my $ifh, "<", $target or die "Could not open $target: $!";
+                $Opt{pager} ||= "less";
                 open my $lfh, "|-", $Opt{pager} or die "Could not fork '$Opt{pager}': $!";
                 local $/;
                 print {$lfh} <$ifh>;
