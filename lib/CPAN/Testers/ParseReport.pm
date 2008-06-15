@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use DateTime::Format::Strptime;
+use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use LWP::UserAgent;
 use HTML::TreeBuilder ();
@@ -38,12 +39,18 @@ This is the core module for CPAN::Testers::ParseReport. If you're not
 looking to extend or alter the behaviour of this module, you probably
 want to look at C<ctgetreports> instead.
 
+=head1 OPTIONS
+
+Are described in the <ctgetreports> manpage and are passed through to
+the functions unaltered.
+
 =head1 FUNCTIONS
 
 =head2 parse_distro($distro,$options)
 
 reads the cpantesters HTML page for the distro and loops through the
-first version of it that can be found there.
+reports for the first (usually most recent) version of that distro
+found on that page.
 
 =cut
 
@@ -160,13 +167,17 @@ sub parse_distro {
     }
 }
 
-=head2 parse_report
+=head2 parse_report($target,$dumpvars,%Opt)
+
+Reads one report. $target is the local filename to read. $dumpvars is
+a hashref which gets filled. %Opt are the options as described in the
+C<ctgetreports> manpage.
 
 =cut
 sub parse_report {
     my($target,$dumpvars,%Opt) = @_;
     our @q;
-    my $id = File::Basename::basename($target);
+    my $id = basename($target);
     my $ok;
     open my $fh, $target or die;
     my(%extract);

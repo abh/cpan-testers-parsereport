@@ -6,7 +6,60 @@ ctgetreports - Quickly fetch cpantesters results with all reports
 
 =head1 SYNOPSIS
 
-  $0 [options] distroname
+  ctgetoptions [options] distroname ...
+
+=head1 OPTIONS
+
+=over 8
+
+=cut
+
+my $optpod = <<'=back';
+
+=item B<--cachedir=s>
+
+Directory to keep mirrored data in. Defaults to C<$HOME/var/cpantesters>.
+
+=item B<--dumpvars=s>
+
+Dump all queryable variables matching the regular expression given as
+argument at the end of the loop for a distro.
+
+=item B<--help|h>
+
+Prints a brief message and exists.
+
+=item B<--interactive|i>
+
+After every parsed report asks if you want to see it in a pager.
+
+=item B<--local>
+
+Do not mirror more than neccessary. Use a local *.html file if present
+even if older than 24 hours.
+
+=item B<--pager=s>
+
+Pager (needed when -i is given). Defaults to C<less>.
+
+=item B<--q=s@>
+
+Query, may be repeated.
+
+Example: C<--q mod:Clone --q meta:writer>
+
+=item B<--vdistro=s>
+
+Versioned distro. Needed if we do not want the most recent. Makes no
+sense if there is more than one argument on the command line.
+
+Example: C<--vdistro IPC-Run-0.80>
+
+=item B<--verbose|v+>
+
+Feedback during download.
+
+=back
 
 =head1 DESCRIPTION
 
@@ -93,25 +146,27 @@ use warnings;
 
 use CPAN::Testers::ParseReport;
 use Getopt::Long;
+use Pod::Usage qw(pod2usage);
 
 sub Usage () {
     die "Usage: FIXME";
 };
 our %Opt;
+my @opt = $optpod =~ /B<--(\S+)>/g;
+for (@opt) {
+    $_ .= "!" unless /[+!=]/;
+}
+
 GetOptions(\%Opt,
-           "cachedir=s", # defaults to $HOME/var/cpantesters
-           "dumpvars=s", # list all queryable variables
-           "interactive|i!", # asks if you want to see it
-           "local!",     # use a local *.html if present even if older than 24 hours
-           "mirrorhtmlonly!",
-           "pager=s",    # defaults to less
-           "q=s\@",      #
-           "vdistro=s",  # versioned distro if we do not want the most recent
-           "verbose+",   # feedback during download where we stand
-          ) or die Usage;
+           @opt,
+          ) or pod2usage(2);
+
+if ($Opt{help}) {
+    pod2usage(0);
+}
 
 if (! @ARGV) {
-    die Usage;
+    pod2usage(2);
 }
 
 if ($Opt{dumpvars}) {
