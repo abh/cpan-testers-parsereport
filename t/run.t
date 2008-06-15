@@ -29,7 +29,7 @@ for my $s (1..@s) {
   while (<$fh>) {
     $seen_usage++ if /Usage:/;
   }
-  my $ret = close $fh;
+  $ret = close $fh;
   ok 1==$ret, "$script:-help:ret=$ret";
   ok 0<$seen_usage, "$script:-help:su=$seen_usage";
 }
