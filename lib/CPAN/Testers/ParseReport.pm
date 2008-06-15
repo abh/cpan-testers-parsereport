@@ -9,11 +9,11 @@ CPAN::Testers::ParseReport - parse reports to cpantesters.perl.org from various 
 
 =head1 VERSION
 
-Version 0.0.1
+Version 0.0.2
 
 =cut
 
-use version; our $VERSION = qv('0.0.1');
+use version; our $VERSION = qv('0.0.2');
 
 
 =head1 SYNOPSIS

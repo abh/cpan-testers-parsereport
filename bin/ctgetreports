@@ -86,11 +86,6 @@ have and fetch new reports referenced there too:
     0 == system $system or die;
   }'
 
-=head1 BUGS
-
-Should be able to produce CPAN::Testers::Report objects. Should be
-able to parse individual test results.
-
 =cut
 
 use strict;
@@ -112,6 +107,7 @@ sub Usage () {
 };
 our %Opt;
 GetOptions(\%Opt,
+           "cachedir=s", # defaults to $HOME/var/cpantesters
            "dumpvars=s", # list all queryable variables
            "interactive|i!", # asks if you want to see it
            "local!",     # use a local *.html if present even if older than 24 hours
@@ -140,12 +136,12 @@ if ($Opt{dumpvars}) {
     }
 }
 
-my $ROOT = "$ENV{HOME}/var/cpantesters";
+$Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
 
 $|=1;
 DISTRO: for my $distro (@ARGV) {
     my %dumpvars;
-    my $cts_dir = "$ROOT/cpantesters-show";
+    my $cts_dir = "$Opt{cachedir}/cpantesters-show";
     mkpath $cts_dir;
     my $ctarget = "$cts_dir/$distro.html";
     my $cheaders = "$cts_dir/$distro.headers";
@@ -219,7 +215,7 @@ DISTRO: for my $distro (@ARGV) {
     for my $test ($nsu ? $xc->findnodes("x:li",$selected_release_ul) : $selected_release_ul->findnodes("li")) {
         $ok = $nsu ? $xc->findvalue("x:span[1]/\@class",$test) : $test->findvalue("span[1]/\@class");
         $id = $nsu ? $xc->findvalue("x:a[1]/text()",$test)     : $test->findvalue("a[1]/text()");
-        my $nnt_dir = "$ROOT/nntp-testers";
+        my $nnt_dir = "$Opt{cachedir}/nntp-testers";
         mkpath $nnt_dir;
         my $target = "$nnt_dir/$id";
         unless (-e $target) {

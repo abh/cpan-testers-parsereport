@@ -1,3 +1,8 @@
+2008-06-15  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* Should be able to produce CPAN::Testers::Report objects. Should be
+	able to parse individual test results.
+
 2008-06-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* move code from script to module
