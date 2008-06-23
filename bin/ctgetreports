@@ -20,6 +20,11 @@ my $optpod = <<'=back';
 
 Directory to keep mirrored data in. Defaults to C<$HOME/var/cpantesters>.
 
+=item B<--ctformat=s>
+
+Format of the cpan-testers file that should be downloaded. Default is
+html, alternative is yaml.
+
 =item B<--dumpvars=s>
 
 Dump all queryable variables matching the regular expression given as

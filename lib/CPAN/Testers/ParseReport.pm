@@ -64,14 +64,10 @@ found on that page.
     }
 }
 
-sub parse_distro {
-    my($distro,%Opt) = @_;
-    my %dumpvars;
-    my $ua = _ua;
-    $Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
-    my $cts_dir = "$Opt{cachedir}/cpantesters-show";
-    mkpath $cts_dir;
-    my $ctarget = "$cts_dir/$distro.html";
+sub _download_overview {
+    my($cts_dir, $distro, %Opt) = @_;
+    my $format = $Opt{ctformat} || "html";
+    my $ctarget = "$cts_dir/$distro.$format";
     my $cheaders = "$cts_dir/$distro.headers";
     if (! -e $ctarget or (!$Opt{local} && -M $ctarget > .25)) {
         if (-e $ctarget && $Opt{verbose}) {
@@ -80,7 +76,7 @@ sub parse_distro {
             print "(timestamp $timestamp GMT)\n";
         }
         print "Fetching $ctarget..." if $Opt{verbose};
-        my $resp = $ua->mirror("http://cpantesters.perl.org/show/$distro.html",$ctarget);
+        my $resp = _ua->mirror("http://cpantesters.perl.org/show/$distro.$format",$ctarget);
         if ($resp->is_success) {
             print "DONE\n" if $Opt{verbose};
             open my $fh, ">", $cheaders or die;
@@ -98,6 +94,11 @@ sub parse_distro {
             die $resp->status_line;
         }
     }
+    return $ctarget;
+}
+
+sub _parse_html {
+    my($ctarget, %Opt) = @_;
     my $tree = HTML::TreeBuilder->new;
     $tree->implicit_tags(1);
     $tree->p_strict(1);
@@ -112,7 +113,8 @@ sub parse_distro {
     my $doc = eval { $parser->parse_string($content) };
     my $err = $@;
     unless ($doc) {
-        die "Error while parsing $distro\: $err";
+        my $distro = basename $ctarget;
+        die sprintf "Error while parsing %s\: %s", $distro, $err;
     }
     $parser->clean_namespaces(1);
     my $xc = XML::LibXML::XPathContext->new($doc);
@@ -135,38 +137,103 @@ sub parse_distro {
     }
     unless ($selected_release_distrov) {
         warn "Warning: could not find $excuse_string in '$ctarget'";
-        sleep 1;
-        next;
+        return;
     }
     print "SELECTED: $selected_release_distrov\n";
     my($ok,$id);
+    my @all;
     for my $test ($nsu ? $xc->findnodes("x:li",$selected_release_ul) : $selected_release_ul->findnodes("li")) {
         $ok = $nsu ? $xc->findvalue("x:span[1]/\@class",$test) : $test->findvalue("span[1]/\@class");
         $id = $nsu ? $xc->findvalue("x:a[1]/text()",$test)     : $test->findvalue("a[1]/text()");
-        my $nnt_dir = "$Opt{cachedir}/nntp-testers";
-        mkpath $nnt_dir;
-        my $target = "$nnt_dir/$id";
-        unless (-e $target) {
-            print "Fetching $target..." if $Opt{verbose};
-            my $resp = $ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
-            if ($resp->is_success) {
-                if ($Opt{verbose}) {
-                    my(@stat) = stat $target;
-                    my $timestamp = gmtime $stat[9];
-                    print "(timestamp $timestamp GMT)\n";
-                    if ($Opt{verbose} > 1) {
-                        print $resp->headers->as_string;
-                    }
-                }
-                my $headers = "$target.headers";
-                open my $fh, ">", $headers or die;
-                print $fh $resp->headers->as_string;
-            } else {
-                die $resp->status_line;
+        push @all, {id=>$id,ok=>$ok};
+        return if $Signal;
+    }
+    return \@all;
+}
+
+sub _parse_yaml {
+    my($ctarget, %Opt) = @_;
+    require YAML::Syck;
+    my $arr = YAML::Syck::LoadFile($ctarget);
+    my($selected_release_ul,$selected_release_distrov,$excuse_string);
+    if ($Opt{vdistro}) {
+        $excuse_string = "selected distro '$Opt{vdistro}'";
+        $arr = [grep {$_->{distversion} eq $Opt{vdistro}} @$arr];
+        ($selected_release_distrov) = $arr->[0]{distversion};
+    } else {
+        $excuse_string = "any distro";
+        my $last_addition;
+        my %seen;
+        for my $report (@$arr) {
+            unless ($seen{$report->{distversion}}++) {
+                $last_addition = $report->{distversion};
             }
         }
-        parse_report($target, \%dumpvars, %Opt);
+        $arr = [grep {$_->{distversion} eq $last_addition} @$arr];
+        ($selected_release_distrov) = $last_addition;
+    }
+    unless ($selected_release_distrov) {
+        warn "Warning: could not find $excuse_string in '$ctarget'";
+        return;
+    }
+    print "SELECTED: $selected_release_distrov\n";
+    my($ok,$id);
+    my @all;
+    for my $test (@$arr) {
+        $ok = $test->{action};
+        $id = $test->{id};
+        push @all, {id=>$id,ok=>$ok};
         return if $Signal;
+    }
+    return \@all;
+}
+
+sub _parse_single_report {
+    my($report, $dumpvars, %Opt) = @_;
+    my($id) = $report->{id};
+    my($ok) = $report->{ok};
+    my $nnt_dir = "$Opt{cachedir}/nntp-testers";
+    mkpath $nnt_dir;
+    my $target = "$nnt_dir/$id";
+    unless (-e $target) {
+        print "Fetching $target..." if $Opt{verbose};
+        my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
+        if ($resp->is_success) {
+            if ($Opt{verbose}) {
+                my(@stat) = stat $target;
+                my $timestamp = gmtime $stat[9];
+                print "(timestamp $timestamp GMT)\n";
+                if ($Opt{verbose} > 1) {
+                    print $resp->headers->as_string;
+                }
+            }
+            my $headers = "$target.headers";
+            open my $fh, ">", $headers or die;
+            print $fh $resp->headers->as_string;
+        } else {
+            die $resp->status_line;
+        }
+    }
+    parse_report($target, $dumpvars, %Opt);
+}
+
+sub parse_distro {
+    my($distro,%Opt) = @_;
+    my %dumpvars;
+    $Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
+    my $cts_dir = "$Opt{cachedir}/cpantesters-show";
+    mkpath $cts_dir;
+    my $ctarget = _download_overview($cts_dir, $distro, %Opt);
+    my $reports;
+    $Opt{ctformat} ||= "html";
+    if ($Opt{ctformat} eq "html") {
+        $reports = _parse_html($ctarget);
+    } else {
+        $reports = _parse_yaml($ctarget);
+    }
+    return unless $reports;
+    for my $report (@$reports) {
+        _parse_single_report($report, \%dumpvars, %Opt);
     }
     if ($Opt{dumpvars}) {
         print YAML::Syck::Dump(\%dumpvars);
@@ -363,10 +430,10 @@ sub parse_report {
                                  tpl => 'a'.length($1).'a'.length($2).'a'.length($3).'a*',
                                  type => 1,
                                 };
-            } elsif (/(\s+)(Module Name\s+)(Have\s+)Want/) {
+            } elsif (/(\s+)(Module Name\s+)(Have)(\s+)Want/) {
                 my $adjust_1 = 0;
-                my $adjust_2 = -2; # hackish way of avoiding two-pass
-                my $adjust_3 = 2;
+                my $adjust_2 = -length($4);
+                my $adjust_3 = length($4);
                 # two pass would be required to see where the
                 # columns really are. Or could we get away with split?
                 $moduleunpack = {
