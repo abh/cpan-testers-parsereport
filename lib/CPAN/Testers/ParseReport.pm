@@ -19,11 +19,11 @@ CPAN::Testers::ParseReport - parse reports to cpantesters.perl.org from various 
 
 =head1 VERSION
 
-Version 0.0.2
+Version 0.0.3
 
 =cut
 
-use version; our $VERSION = qv('0.0.2');
+use version; our $VERSION = qv('0.0.3');
 
 
 =head1 SYNOPSIS
@@ -54,10 +54,20 @@ found on that page.
 
 =cut
 
+{
+    my $ua;
+    sub _ua {
+        return $ua if $ua;
+        $ua = LWP::UserAgent->new;
+        $ua->parse_head(0);
+        $ua;
+    }
+}
+
 sub parse_distro {
     my($distro,%Opt) = @_;
     my %dumpvars;
-    our $ua;
+    my $ua = _ua;
     $Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
     my $cts_dir = "$Opt{cachedir}/cpantesters-show";
     mkpath $cts_dir;
@@ -70,10 +80,6 @@ sub parse_distro {
             print "(timestamp $timestamp GMT)\n";
         }
         print "Fetching $ctarget..." if $Opt{verbose};
-        unless ($ua) {
-            $ua = LWP::UserAgent->new;
-            $ua->parse_head(0);
-        }
         my $resp = $ua->mirror("http://cpantesters.perl.org/show/$distro.html",$ctarget);
         if ($resp->is_success) {
             print "DONE\n" if $Opt{verbose};
