@@ -1,3 +1,7 @@
+2008-06-24  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* write a real-download-test, but ask for permission during Build.PL
+
 2008-06-15  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* should not be dependent on the HTML markup provided by cpantesters
@@ -14,7 +18,7 @@
 
 	* write a test for the switches
 
-	* new switch: --cpantesters-format=yaml
+	* new switch: --cpantesters-format=yaml DONE
 
 
 	Local Variables:

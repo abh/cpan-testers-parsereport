@@ -1,3 +1,12 @@
+2008-06-24  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.3
+
+	* address #37035: $ua could be uninitialized.
+
+	* introduce new option ctformat=html|yaml especially to analyze
+	DateTime::Format::Strptime which has a broken HTML page at the moment.
+
 2008-06-15  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.2
