@@ -10,3 +10,4 @@ t/pod-coverage.t
 t/pod.t
 Makefile.PL
 META.yml
+SIGNATURE                                Public-key signature (added by MakeMaker)
