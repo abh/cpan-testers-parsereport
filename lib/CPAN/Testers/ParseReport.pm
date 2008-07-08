@@ -354,6 +354,7 @@ sub parse_report {
             if (/^\s*$/ || m|</pre>|) {
                 $in_summary = 0;
             } else {
+                s/&quot;/"/g;
                 my(%kv) = /\G,?\s*([^=]+)=('[^']+?'|\S+)/gc;
                 while (my($k,$v) = each %kv) {
                     my $ck = "conf:$k";
@@ -503,19 +504,15 @@ sub parse_report {
 
 =head1 AUTHOR
 
-Andreas Koenig, C<< <andreas.koenig.7os6VVqR at franz.ak.mind.de> >>
+Andreas Koenig
 
 =head1 BUGS
 
-Please report any bugs or feature requests to
-C<bug-cpan-testers-parsereport at rt.cpan.org>, or through the web
+Please report any bugs or feature requests through the web
 interface at
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CPAN-Testers-ParseReport>.
 I will be notified, and then you'll automatically be notified of
 progress on your bug as I make changes.
-
-
-
 
 =head1 SUPPORT
 
@@ -549,6 +546,7 @@ L<http://search.cpan.org/dist/CPAN-Testers-ParseReport>
 
 =head1 ACKNOWLEDGEMENTS
 
+Thanks to RJBS for module-starter.
 
 =head1 COPYRIGHT & LICENSE
 
