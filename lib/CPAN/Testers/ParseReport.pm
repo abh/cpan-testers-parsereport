@@ -234,6 +234,7 @@ sub parse_distro {
     return unless $reports;
     for my $report (@$reports) {
         _parse_single_report($report, \%dumpvars, %Opt);
+        last if $Signal;
     }
     if ($Opt{dumpvars}) {
         print YAML::Syck::Dump(\%dumpvars);
@@ -481,7 +482,7 @@ sub parse_report {
         local $ARGV;
         my $ans = IO::Prompt::prompt
             (
-             -p => "View $id? ",
+             -p => "View $id? [onechar: ynq] ",
              -d => "y",
              -u => qr/[ynq]/,
              -onechar,
