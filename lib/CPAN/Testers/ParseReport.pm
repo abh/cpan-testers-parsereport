@@ -156,6 +156,7 @@ sub _parse_yaml {
     require YAML::Syck;
     my $arr = YAML::Syck::LoadFile($ctarget);
     my($selected_release_ul,$selected_release_distrov,$excuse_string);
+    $DB::singl++;
     if ($Opt{vdistro}) {
         $excuse_string = "selected distro '$Opt{vdistro}'";
         $arr = [grep {$_->{distversion} eq $Opt{vdistro}} @$arr];
@@ -225,11 +226,12 @@ sub parse_distro {
     mkpath $cts_dir;
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
+    # $DB::single++;
     $Opt{ctformat} ||= "html";
     if ($Opt{ctformat} eq "html") {
-        $reports = _parse_html($ctarget);
+        $reports = _parse_html($ctarget,%Opt);
     } else {
-        $reports = _parse_yaml($ctarget);
+        $reports = _parse_yaml($ctarget,%Opt);
     }
     return unless $reports;
     for my $report (@$reports) {
