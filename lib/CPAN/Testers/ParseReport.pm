@@ -13,23 +13,28 @@ use XML::LibXML::XPathContext;
 
 our $Signal = 0;
 
+=encoding utf-8
+
 =head1 NAME
 
 CPAN::Testers::ParseReport - parse reports to cpantesters.perl.org from various sources
 
+=cut
+
+my($version_eval) = <<'=cut' =~ /((?m:^use.*))/;
+
 =head1 VERSION
 
-Version 0.0.4
+use version; our $VERSION = qv('0.0.5');
 
 =cut
 
-use version; our $VERSION = qv('0.0.4');
-
+eval $version_eval; die $@ if $@;
 
 =head1 SYNOPSIS
 
-Nothing in here is meant for public consumption. Use C<ctgetreports>
-from the commandline.
+The documentation in here is normally not needed because the code is
+meant to be run from a standalone program, L<ctgetreports>.
 
   ctgetreports --q mod:Moose Devel-Events
 
@@ -37,11 +42,11 @@ from the commandline.
 
 This is the core module for CPAN::Testers::ParseReport. If you're not
 looking to extend or alter the behaviour of this module, you probably
-want to look at C<ctgetreports> instead.
+want to look at L<ctgetreports> instead.
 
 =head1 OPTIONS
 
-Are described in the <ctgetreports> manpage and are passed through to
+Are described in the L<ctgetreports> manpage and are passed through to
 the functions unaltered.
 
 =head1 FUNCTIONS
@@ -507,7 +512,7 @@ sub parse_report {
 
 =head1 AUTHOR
 
-Andreas Koenig
+Andreas König
 
 =head1 BUGS
 
@@ -553,7 +558,7 @@ Thanks to RJBS for module-starter.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright 2008 Andreas Koenig, all rights reserved.
+Copyright 2008 Andreas König.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
