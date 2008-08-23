@@ -1,3 +1,9 @@
+2008-08-23  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.5
+
+	* minor bug fix: --vdistro and --ctformat=yaml did not work together
+
 2008-06-24  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.4
