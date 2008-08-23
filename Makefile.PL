@@ -4,8 +4,16 @@ use ExtUtils::MakeMaker;
 my @sign = (MM->can("signature_target") ? (SIGN => 1) : ());
 my $version_diff = 0; # we'll have to die if this becomes true
 my $version_from = 'lib/CPAN/Testers/ParseReport.pm';
+my $version;
+{
+    open my $fh, "<", $version_from or die "Could not open $version_from: $!";
+    my @version = grep /VERSION\s*=\s*qv/, <$fh>;
+    our $VERSION;
+    eval $version[0];
+    $version = $VERSION;
+}
 if ($ARGV[0] && $ARGV[0] eq "--setversion") {
-    eval {  require $version_from; };
+    eval {  require $version_from; }; die $@ if $@;
     open my $fh, "make the-release-name|" or die;
     local $/;
     my ($have_version) = <$fh> =~ /^version\s+([\d\._]+)/m;
@@ -21,7 +29,7 @@ if ($ARGV[0] && $ARGV[0] eq "--setversion") {
 WriteMakefile
     (
      'NAME' => 'CPAN::Testers::ParseReport',
-     'VERSION_FROM' => $version_from,
+     'VERSION' => $version,
      'PREREQ_PM' => {
                      'DateTime::Format::Strptime' => 0,
                      'File::Path' => 0,
