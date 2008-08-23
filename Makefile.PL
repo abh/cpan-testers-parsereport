@@ -53,6 +53,7 @@ WriteMakefile
      # I took it from RT-CPAN ticket 30098:
      ($ExtUtils::MakeMaker::VERSION >= 6.3002 ?
       (EXTRA_META => <<EMETA,
+# write: git push git+ssh://repo.or.cz/srv/git/cpan-testers-parsereport.git master
 repository: "git://repo.or.cz/cpan-testers-parsereport.git"
 EMETA
       ) : ()),
