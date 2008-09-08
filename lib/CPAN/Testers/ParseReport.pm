@@ -259,7 +259,7 @@ sub parse_report {
     my($target,$dumpvars,%Opt) = @_;
     our @q;
     my $id = basename($target);
-    my $ok;
+    my($ok,$about);
     open my $fh, $target or die;
     my(%extract);
     my $report_writer;
@@ -274,8 +274,13 @@ sub parse_report {
     my $current_headline;
     my @previous_line = ""; # so we can neutralize line breaks
   LINE: while (<$fh>) {
-        next unless /<title>(\S+)/;
+        next unless /<title>(\S+)\s+(\S+)/;
         $ok = $1;
+        $about = $2;
+        %extract = (
+                    "meta:ok" => $ok,
+                    "meta:about"=> $about,
+                   );
         last;
     }
     seek $fh, 0, 0;
