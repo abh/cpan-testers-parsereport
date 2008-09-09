@@ -25,7 +25,7 @@ my($version_eval) = <<'=cut' =~ /((?m:^use.*))/;
 
 =head1 VERSION
 
-use version; our $VERSION = qv('0.0.5');
+use version; our $VERSION = qv('0.0.6');
 
 =cut
 
@@ -125,7 +125,6 @@ sub _parse_html {
     my $xc = XML::LibXML::XPathContext->new($doc);
     my $nsu = $doc->documentElement->namespaceURI;
     $xc->registerNs('x', $nsu) if $nsu;
-    # $DB::single++;
     my($selected_release_ul,$selected_release_distrov,$excuse_string);
     if ($Opt{vdistro}) {
         $excuse_string = "selected distro '$Opt{vdistro}'";
@@ -161,7 +160,6 @@ sub _parse_yaml {
     require YAML::Syck;
     my $arr = YAML::Syck::LoadFile($ctarget);
     my($selected_release_ul,$selected_release_distrov,$excuse_string);
-    $DB::singl++;
     if ($Opt{vdistro}) {
         $excuse_string = "selected distro '$Opt{vdistro}'";
         $arr = [grep {$_->{distversion} eq $Opt{vdistro}} @$arr];
@@ -231,7 +229,6 @@ sub parse_distro {
     mkpath $cts_dir;
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
-    # $DB::single++;
     $Opt{ctformat} ||= "html";
     if ($Opt{ctformat} eq "html") {
         $reports = _parse_html($ctarget,%Opt);
@@ -377,7 +374,6 @@ sub parse_report {
                     }
                     $v =~ s/^\s+//;
                     $v =~ s/\s+$//;
-                    # $DB::single = $ck eq "conf:archname";
                     if ($qr && $ck =~ $qr) {
                         $dumpvars->{$ck}{$v}{$ok}++;
                     }

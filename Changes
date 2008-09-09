@@ -1,3 +1,9 @@
+2008-09-09  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.6
+
+	* add meta:ok and meta:about as query parameter
+
 2008-08-23  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.5

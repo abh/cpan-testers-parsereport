@@ -13,6 +13,9 @@ my $version;
     $version = $VERSION;
 }
 if ($ARGV[0] && $ARGV[0] eq "--setversion") {
+    die "Your perl is a bit dated[$]].\nDo not make a release with it\n" if $] < 5.008;
+    warn "Your MakeMaker is a bit dated[$ExtUtils::MakeMaker::VERSION].\nYou should get a new one\n"
+        if $ExtUtils::MakeMaker::VERSION < 6.4502;
     eval {  require $version_from; }; die $@ if $@;
     open my $fh, "make the-release-name|" or die;
     local $/;
@@ -58,13 +61,11 @@ WriteMakefile
                                   ),
               COMPRESS => 'gzip -9',
              },
-     # I took it from RT-CPAN ticket 30098:
-     ($ExtUtils::MakeMaker::VERSION >= 6.3002 ?
-      (EXTRA_META => <<EMETA,
-# write: git push git+ssh://repo.or.cz/srv/git/cpan-testers-parsereport.git master
-repository: "git://repo.or.cz/cpan-testers-parsereport.git"
-EMETA
-      ) : ()),
+     ($ExtUtils::MakeMaker::VERSION >= 6.4502 ?
+      (META_ADD => {
+                    # write: git push git+ssh://repo.or.cz/srv/git/cpan-testers-parsereport.git master
+                    repository => "git://repo.or.cz/cpan-testers-parsereport.git",
+                   }) : ()),
      @sign,
     );
 
