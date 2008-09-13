@@ -53,9 +53,17 @@ the functions unaltered.
 
 =head2 parse_distro($distro,$options)
 
-reads the cpantesters HTML page for the distro and loops through the
-reports for the first (usually most recent) version of that distro
-found on that page.
+reads the cpantesters HTML page or the YAML file for the distro and
+loops through the reports for the specified or most recent version of
+that distro found in these data.
+
+=head2 parse_single_report($report,$dumpvars,$options)
+
+mirrors and reads this report. $report is of the for
+
+  { id => number }
+
+$dumpvar is a hashreference that gets filled with data.
 
 =cut
 
@@ -81,7 +89,8 @@ sub _download_overview {
             print "(timestamp $timestamp GMT)\n";
         }
         print "Fetching $ctarget..." if $Opt{verbose};
-        my $resp = _ua->mirror("http://cpantesters.perl.org/show/$distro.$format",$ctarget);
+        my $uri = "http://cpantesters.perl.org/show/$distro.$format";
+        my $resp = _ua->mirror($uri,$ctarget);
         if ($resp->is_success) {
             print "DONE\n" if $Opt{verbose};
             open my $fh, ">", $cheaders or die;
@@ -96,7 +105,12 @@ sub _download_overview {
             my $atime = my $mtime = time;
             utime $atime, $mtime, $cheaders;
         } else {
-            die $resp->status_line;
+            die sprintf
+                (
+                 "No success downloading %s: %s",
+                 $uri,
+                 $resp->status_line,
+                );
         }
     }
     return $ctarget;
@@ -149,7 +163,7 @@ sub _parse_html {
     for my $test ($nsu ? $xc->findnodes("x:li",$selected_release_ul) : $selected_release_ul->findnodes("li")) {
         $ok = $nsu ? $xc->findvalue("x:span[1]/\@class",$test) : $test->findvalue("span[1]/\@class");
         $id = $nsu ? $xc->findvalue("x:a[1]/text()",$test)     : $test->findvalue("a[1]/text()");
-        push @all, {id=>$id,ok=>$ok};
+        push @all, {id=>$id};
         return if $Signal;
     }
     return \@all;
@@ -186,16 +200,16 @@ sub _parse_yaml {
     for my $test (@$arr) {
         $ok = $test->{action};
         $id = $test->{id};
-        push @all, {id=>$id,ok=>$ok};
+        push @all, {id=>$id};
         return if $Signal;
     }
     return \@all;
 }
 
-sub _parse_single_report {
+sub parse_single_report {
     my($report, $dumpvars, %Opt) = @_;
     my($id) = $report->{id};
-    my($ok) = $report->{ok};
+    $Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
     my $nnt_dir = "$Opt{cachedir}/nntp-testers";
     mkpath $nnt_dir;
     my $target = "$nnt_dir/$id";
@@ -237,7 +251,7 @@ sub parse_distro {
     }
     return unless $reports;
     for my $report (@$reports) {
-        _parse_single_report($report, \%dumpvars, %Opt);
+        parse_single_report($report, \%dumpvars, %Opt);
         last if $Signal;
     }
     if ($Opt{dumpvars}) {
@@ -267,6 +281,7 @@ sub parse_report {
 
     my $in_summary = 0;
     my $in_prg_output = 0;
+    my $in_env_context = 0;
 
     my $current_headline;
     my @previous_line = ""; # so we can neutralize line breaks
@@ -290,6 +305,11 @@ sub parse_report {
                 $in_prg_output = 1;
             } else {
                 $in_prg_output = 0;
+            }
+            if ($current_headline =~ /ENVIRONMENT AND OTHER CONTEXT/) {
+                $in_env_context = 1;
+            } else {
+                $in_env_context = 0;
             }
         }
         unless ($extract{"meta:perl"}) {
@@ -390,6 +410,13 @@ sub parse_report {
                 }
             }
         }
+        if ($in_env_context) {
+            $DB::single++;
+            if (/^\s{4}(\S+)\s*=\s*(.*)$/) {
+                $extract{"env:$1"} = $2;
+            }
+        }
+        push @previous_line, $_;
         if ($expect_prereq || $expect_toolchain) {
             if (exists $moduleunpack->{type}) {
                 my($module,$v);
@@ -468,7 +495,6 @@ sub parse_report {
         if (/toolchain versions installed/) {
             $expecting_toolchain_soon=1;
         }
-        push @previous_line, $_;
     }                           # LINE
     my $diag = "";
     if (my $qr = $Opt{dumpvars}) {

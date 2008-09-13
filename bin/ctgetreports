@@ -7,6 +7,7 @@ ctgetreports - Quickly fetch cpantesters results with all reports
 =head1 SYNOPSIS
 
   ctgetoptions [options] distroname ...
+  ctgetoptions [options] --report number ...
   ctgetoptions -h
 
 =head1 OPTIONS
@@ -54,6 +55,13 @@ Query, may be repeated.
 
 Example: C<--q mod:Clone --q meta:writer>
 
+=item B<--report=s@>
+
+Avert going through a cpan testers index, go straight to the report
+with this number.
+
+Example: C<--report 1238673>
+
 =item B<--vdistro=s>
 
 Versioned distro. Needed if we do not want the most recent. Makes no
@@ -86,6 +94,7 @@ and the query itself. Qualifiers are one of the following
              e.g.: conf:usethreads, conf:cc
   mod        for installed modules, either from perrequisites or from the toolchain
              e.g.: mod:Test::Simple, mod:Imager
+  env        environment variables
   meta       all other parameters
              e.g.: meta:perl, meta:from
 
@@ -95,7 +104,8 @@ The mod parameters consist of a package name.
 
 The meta parameters are the following: C<perl> for the perl version,
 C<from> for the sender of the report, C<date> for the date in the mail
-header, C<writer> for the module that produced the report.
+header, C<writer> for the module that produced the report,
+C<output_from> for the line that is reported to have produced the output.
 
 
 =head2 Examples
@@ -168,8 +178,14 @@ if ($Opt{help}) {
     pod2usage(0);
 }
 
-if (! @ARGV) {
-    pod2usage(2);
+if ($Opt{report}) {
+    if (@ARGV) {
+        pod2usage(2);
+    }
+} else {
+    if (! @ARGV) {
+        pod2usage(2);
+    }
 }
 
 if ($Opt{dumpvars}) {
@@ -180,8 +196,16 @@ if ($Opt{dumpvars}) {
 }
 
 $|=1;
-DISTRO: for my $distro (@ARGV) {
-    CPAN::Testers::ParseReport::parse_distro($distro,%Opt);
-    last DISTRO if $CPAN::Testers::ParseReport::Signal;
+if (my $reports = delete $Opt{report}) {
+  REPORT: for my $report (@$reports) {
+        CPAN::Testers::ParseReport::parse_single_report({id => $report},+{},%Opt);
+        last DISTRO if $CPAN::Testers::ParseReport::Signal;
+    }
+} else {
+  DISTRO: for my $distro (@ARGV) {
+        CPAN::Testers::ParseReport::parse_distro($distro,%Opt);
+        last DISTRO if $CPAN::Testers::ParseReport::Signal;
+    }
 }
+
 __END__
