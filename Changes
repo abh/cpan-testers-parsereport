@@ -1,8 +1,20 @@
+2008-09-13  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.7
+
+	* support new option --report to parse a single report
+
+	* support envariables parsing and options of the form env:VARIABLE
+
+	* document so far undocumented query option meta:output_from
+
 2008-09-09  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.6
 
 	* add meta:ok and meta:about as query parameter
+
+	* slightly improved manpage
 
 2008-08-23  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
