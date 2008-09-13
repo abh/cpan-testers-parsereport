@@ -1,6 +1,6 @@
 2008-09-07  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
-	* ENV? We seem to neglect the parsing of the environment!
+	* ENV? We seem to neglect the parsing of the environment! DONE
 
 2008-08-21  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
