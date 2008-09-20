@@ -25,7 +25,7 @@ if ($ARGV[0] && $ARGV[0] eq "--setversion") {
     unless (-f $makefile) {
         die "no Makefile and no Makefile.old found";
     }
-    open my $fh, "make the-release-name|" or die "Could not fork: $!";
+    open my $fh, "make -f $makefile the-release-name|" or die "Could not fork: $!";
     local $/;
     my ($have_version) = <$fh> =~ /^version\s+([\d\._]+)/m;
     close $fh or die "Could not close: $!";
