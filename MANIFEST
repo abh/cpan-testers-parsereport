@@ -1,13 +1,15 @@
-Makefile.PL
-Changes
-MANIFEST
-README
-TODO
 bin/ctgetreports
+Changes
 lib/CPAN/Testers/ParseReport.pm
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+META.yml
+README
+SIGNATURE			Public-key signature (added by MakeMaker)
 t/00-load.t
+t/metayaml.t
 t/pod-coverage.t
 t/pod.t
-Makefile.PL
-META.yml
-SIGNATURE                                Public-key signature (added by MakeMaker)
+t/run.t
+TODO

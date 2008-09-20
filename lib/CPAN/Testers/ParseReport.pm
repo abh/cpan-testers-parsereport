@@ -25,7 +25,7 @@ my($version_eval) = <<'=cut' =~ /((?m:^use.*))/;
 
 =head1 VERSION
 
-use version; our $VERSION = qv('0.0.7');
+use version; our $VERSION = qv('0.0.8');
 
 =cut
 

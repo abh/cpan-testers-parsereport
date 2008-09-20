@@ -1,3 +1,9 @@
+2008-09-20  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.8
+
+	* packaging issues: META.yml and MANIFEST repaired, tests added
+
 2008-09-13  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.7

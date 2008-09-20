@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+    $ExtUtils::MakeMaker::VERSION =~ s/_//g;
 my @sign = (MM->can("signature_target") ? (SIGN => 1) : ());
 my $version_diff = 0; # we'll have to die if this becomes true
 my $version_from = 'lib/CPAN/Testers/ParseReport.pm';
@@ -17,9 +18,17 @@ if ($ARGV[0] && $ARGV[0] eq "--setversion") {
     warn "Your MakeMaker is a bit dated[$ExtUtils::MakeMaker::VERSION].\nYou should get a new one\n"
         if $ExtUtils::MakeMaker::VERSION < 6.4502;
     eval {  require $version_from; }; die $@ if $@;
-    open my $fh, "make the-release-name|" or die;
+    my $makefile = "Makefile";
+    unless (-f $makefile) {
+        $makefile = "Makefile.old";
+    }
+    unless (-f $makefile) {
+        die "no Makefile and no Makefile.old found";
+    }
+    open my $fh, "make the-release-name|" or die "Could not fork: $!";
     local $/;
     my ($have_version) = <$fh> =~ /^version\s+([\d\._]+)/m;
+    close $fh or die "Could not close: $!";
     my ($namespace) = $version_from;
     $namespace =~ s|^lib/(.+)\.pm$|$1|;
     $namespace =~ s|/|::|g;
@@ -50,6 +59,8 @@ WriteMakefile
      'EXE_FILES' => [
                      'bin/ctgetreports',
                     ],
+     LICENSE => "perl",
+     ABSTRACT => "parse reports to cpantesters.perl.org from various sources",
      'PL_FILES' => {},
      dist => {
               DIST_DEFAULT => join(" ", # note: order matters!
@@ -65,6 +76,7 @@ WriteMakefile
       (META_ADD => {
                     # write: git push git+ssh://repo.or.cz/srv/git/cpan-testers-parsereport.git master
                     repository => "git://repo.or.cz/cpan-testers-parsereport.git",
+                    provides => { "CPAN::Testers::ParseReport" => { version => $version, file => $version_from }},
                    }) : ()),
      @sign,
     );
@@ -81,6 +93,9 @@ package MY;
 sub postamble {
   my @m;
   push @m, q{
+META.yml: metafile
+	$(CP) $(DISTVNAME)/META.yml  ./META.yml
+
 setversion:
 	$(PERL) Makefile.PL --setversion
 

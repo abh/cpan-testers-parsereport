@@ -16,4 +16,5 @@ pm_to_blib
 \.releaserc
 ^CPAN-Testers-ParseReport-
 ^DIST/
+^Makefile$
 git-daemon-export-ok
