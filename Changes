@@ -1,5 +1,9 @@
 2008-09-20  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
+	* release 0.0.9
+
+	* new options --raw and --q qr:REGEXP (suggested by Slaven Rezic)
+
 	* release 0.0.8
 
 	* packaging issues: META.yml and MANIFEST repaired, tests added

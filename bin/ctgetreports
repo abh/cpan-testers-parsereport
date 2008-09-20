@@ -55,6 +55,11 @@ Query, may be repeated.
 
 Example: C<--q mod:Clone --q meta:writer>
 
+=item B<--raw!>
+
+Boolean which, if set, causes the full (HTML) report to be
+concatenated to STDOUT after every status line.
+
 =item B<--report=s@>
 
 Avert going through a cpan testers index, go straight to the report
@@ -92,11 +97,14 @@ and the query itself. Qualifiers are one of the following
 
   conf       parameters from the output of 'perl -V'
              e.g.: conf:usethreads, conf:cc
-  mod        for installed modules, either from perrequisites or from the toolchain
+  mod        for installed modules, either from prerequisites or from the toolchain
              e.g.: mod:Test::Simple, mod:Imager
   env        environment variables
+             e.g.: env:TERM
   meta       all other parameters
              e.g.: meta:perl, meta:from
+  qr         boolean set if the appended regexp matches the report
+             e.g.: qr:'division by zero'
 
 The conf parameters specify a word used by the C<Config> module.
 
@@ -143,6 +151,11 @@ most recent:
 Pick the specific release IPC-Run-0.80:
 
   $0 --vdistro IPC-Run-0.80 IPC-Run
+
+The following displays in its own column if the report contains the
+regexp C<division by zero>:
+
+  $0 --q qr:"division by zero" --vdistro 'CPAN-Testers-ParseReport-0.0.7' CPAN-Testers-ParseReport
 
 The following is a simple job to refresh all HTML pages we already
 have and fetch new reports referenced there too:

@@ -25,7 +25,7 @@ my($version_eval) = <<'=cut' =~ /((?m:^use.*))/;
 
 =head1 VERSION
 
-use version; our $VERSION = qv('0.0.8');
+use version; our $VERSION = qv('0.0.9');
 
 =cut
 
@@ -271,8 +271,26 @@ sub parse_report {
     our @q;
     my $id = basename($target);
     my($ok,$about);
-    open my $fh, $target or die;
+
     my(%extract);
+
+    my $report;
+    my @qr = map /^qr:(.+)/, @{$Opt{q}};
+    if ($Opt{raw} || @qr) {
+        open my $fh, $target or die "Could not open '$target': $!";
+        local $/;
+        $report = <$fh>;
+        close $fh;
+        for my $qr (@qr) {
+            my $cqr = eval "qr{$qr}";
+            die "Could not compile regular expression '$qr': $@" if $@;
+            my $matches = $report =~ $cqr;
+            $extract{"qr:$qr"} = $matches ? 1 : 0;
+        }
+    }
+
+    open my $fh, $target or die "Could not open '$target': $!";
+
     my $report_writer;
     my $moduleunpack = {};
     my $expect_prereq = 0;
@@ -289,10 +307,8 @@ sub parse_report {
         next unless /<title>(\S+)\s+(\S+)/;
         $ok = $1;
         $about = $2;
-        %extract = (
-                    "meta:ok" => $ok,
-                    "meta:about"=> $about,
-                   );
+        $extract{"meta:ok"}    = $ok;
+        $extract{"meta:about"} = $about;
         last;
     }
     seek $fh, 0, 0;
@@ -510,6 +526,10 @@ sub parse_report {
         $diag .= " $want\[$have]";
     }
     printf " %-4s %8d%s\n", $ok, $id, $diag;
+    if ($Opt{raw}) {
+        $report =~ s/\s+\z//;
+        print $report, "\n================\n";
+    }
     if ($Opt{interactive}) {
         require IO::Prompt;
         local @ARGV;
