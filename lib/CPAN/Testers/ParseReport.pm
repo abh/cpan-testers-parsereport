@@ -17,7 +17,7 @@ our $Signal = 0;
 
 =head1 NAME
 
-CPAN::Testers::ParseReport - parse reports to cpantesters.perl.org from various sources
+CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various sources
 
 =cut
 
@@ -89,7 +89,7 @@ sub _download_overview {
             print "(timestamp $timestamp GMT)\n";
         }
         print "Fetching $ctarget..." if $Opt{verbose};
-        my $uri = "http://cpantesters.perl.org/show/$distro.$format";
+        my $uri = "http://www.cpantesters.org/show/$distro.$format";
         my $resp = _ua->mirror($uri,$ctarget);
         if ($resp->is_success) {
             print "DONE\n" if $Opt{verbose};

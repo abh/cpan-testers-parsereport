@@ -60,7 +60,7 @@ WriteMakefile
                      'bin/ctgetreports',
                     ],
      LICENSE => "perl",
-     ABSTRACT => "parse reports to cpantesters.perl.org from various sources",
+     ABSTRACT => "parse reports to www.cpantesters.org from various sources",
      'PL_FILES' => {},
      dist => {
               DIST_DEFAULT => join(" ", # note: order matters!
