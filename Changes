@@ -8,6 +8,9 @@
 	* address #39459: set display variable to captured regexp with qr:
 	(suggested by Slaven Rezic)
 
+	* temporarily setting --ctformat=yaml the default until cpantesters site
+	is stable again
+
 2008-09-20  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.9

@@ -79,7 +79,7 @@ $dumpvar is a hashreference that gets filled with data.
 
 sub _download_overview {
     my($cts_dir, $distro, %Opt) = @_;
-    my $format = $Opt{ctformat} || "html";
+    my $format = $Opt{ctformat} ||= "yaml";
     my $ctarget = "$cts_dir/$distro.$format";
     my $cheaders = "$cts_dir/$distro.headers";
     if (! -e $ctarget or (!$Opt{local} && -M $ctarget > .25)) {
@@ -242,7 +242,7 @@ sub parse_distro {
     mkpath $cts_dir;
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
-    $Opt{ctformat} ||= "html";
+    $Opt{ctformat} ||= "yaml";
     if ($Opt{ctformat} eq "html") {
         $reports = _parse_html($ctarget,%Opt);
     } else {
