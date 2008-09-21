@@ -93,11 +93,19 @@ package MY;
 sub postamble {
   my @m;
   push @m, q{
+# the subdirs on MY OWN BOX are allowed here (only used for make dist!)
+OKDIRS=DIST|bin|blib|cover_db\
+       |lib|t
+
 META.yml: metafile
 	$(CP) $(DISTVNAME)/META.yml  ./META.yml
 
 setversion:
 	$(PERL) Makefile.PL --setversion
+
+verify-no-subdir:
+	@$(PERL) -e 'my$$s=join",",grep{!/^($(OKDIRS))\z/x&&-d($$_)}glob"*";' \
+		-e 'die"unexpected dir:$$s"if$$s'
 
 the-release-name :
 	$(NOECHO) $(ECHO) 'version ' $(VERSION)
