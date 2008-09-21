@@ -284,7 +284,17 @@ sub parse_report {
             my $cqr = eval "qr{$qr}";
             die "Could not compile regular expression '$qr': $@" if $@;
             my(@matches) = $report =~ $cqr;
-            $extract{"qr:$qr"} = @matches ? join(" ", @matches) : "";
+            my $v;
+            if (@matches) {
+                if (@matches==1) {
+                    $v = $matches[0];
+                } else {
+                    $v = join "", map {"($_)"} @matches;
+                }
+            } else {
+                $v = "";
+            }
+            $extract{"qr:$qr"} = $v;
         }
     }
 
