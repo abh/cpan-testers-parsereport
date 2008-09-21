@@ -1,3 +1,13 @@
+2008-09-21  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.10
+
+	* address #39458: make sort order descending with --ctformat:yaml
+	(suggested by Slaven Rezic)
+
+	* address #39459: set display variable to captured regexp with qr:
+	(suggested by Slaven Rezic)
+
 2008-09-20  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.9
