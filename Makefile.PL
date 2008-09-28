@@ -1,18 +1,11 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-    $ExtUtils::MakeMaker::VERSION =~ s/_//g;
+$ExtUtils::MakeMaker::VERSION =~ s/_//g;
 my @sign = (MM->can("signature_target") ? (SIGN => 1) : ());
 my $version_diff = 0; # we'll have to die if this becomes true
 my $version_from = 'lib/CPAN/Testers/ParseReport.pm';
-my $version;
-{
-    open my $fh, "<", $version_from or die "Could not open $version_from: $!";
-    my @version = grep /VERSION\s*=\s*qv/, <$fh>;
-    our $VERSION;
-    eval $version[0];
-    $version = $VERSION;
-}
+my $mmgenereatedversionfrom = MM->parse_version($version_from);
 if ($ARGV[0] && $ARGV[0] eq "--setversion") {
     die "Your perl is a bit dated[$]].\nDo not make a release with it\n" if $] < 5.008;
     warn "Your MakeMaker is a bit dated[$ExtUtils::MakeMaker::VERSION].\nYou should get a new one\n"
@@ -36,12 +29,16 @@ if ($ARGV[0] && $ARGV[0] eq "--setversion") {
         warn "Not equal: CPAN::Testers::ParseReport::VERSION[\$$namespace\::VERSION] Makefile version[\$have_version]";
         \$version_diff = 1;
     }};
+    eval qq{ if (\$$namespace\::VERSION != \$mmgenereatedversionfrom) {
+        warn "Not equal: CPAN::Testers::ParseReport::VERSION[\$$namespace\::VERSION] MM generated version[\$mmgenereatedversionfrom]";
+        \$version_diff = 1;
+    }};
 }
 
 WriteMakefile
     (
      'NAME' => 'CPAN::Testers::ParseReport',
-     'VERSION' => $version,
+     'VERSION_FROM' => $version_from,
      'PREREQ_PM' => {
                      'DateTime::Format::Strptime' => 0,
                      'File::Path' => 0,
@@ -76,7 +73,7 @@ WriteMakefile
       (META_ADD => {
                     # write: git push git+ssh://repo.or.cz/srv/git/cpan-testers-parsereport.git master
                     repository => "git://repo.or.cz/cpan-testers-parsereport.git",
-                    provides => { "CPAN::Testers::ParseReport" => { version => $version, file => $version_from }},
+                    provides => { "CPAN::Testers::ParseReport" => { version => $mmgenereatedversionfrom, file => $version_from }},
                    }) : ()),
      @sign,
     );

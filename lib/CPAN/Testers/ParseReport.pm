@@ -21,15 +21,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-my($version_eval) = <<'=cut' =~ /((?m:^use.*))/;
-
-=head1 VERSION
-
-use version; our $VERSION = qv('0.0.10');
-
-=cut
-
-eval $version_eval; die $@ if $@;
+use version; our $VERSION = qv('0.0.11');
 
 =head1 SYNOPSIS
 
