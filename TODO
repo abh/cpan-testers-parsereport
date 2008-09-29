@@ -1,3 +1,8 @@
+2008-09-29  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* Todo: write a test that parses copies of these downloaded files and
+	does not write to ~/var. Needs further options.
+
 2008-09-07  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* ENV? We seem to neglect the parsing of the environment! DONE

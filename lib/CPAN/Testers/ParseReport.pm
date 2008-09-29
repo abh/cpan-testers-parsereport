@@ -7,10 +7,10 @@ use DateTime::Format::Strptime;
 use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use LWP::UserAgent;
-use HTML::TreeBuilder ();
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 
+our $default_ctformat = "html";
 our $Signal = 0;
 
 =encoding utf-8
@@ -71,7 +71,7 @@ $dumpvar is a hashreference that gets filled with data.
 
 sub _download_overview {
     my($cts_dir, $distro, %Opt) = @_;
-    my $format = $Opt{ctformat} ||= "yaml";
+    my $format = $Opt{ctformat} ||= $default_ctformat;
     my $ctarget = "$cts_dir/$distro.$format";
     my $cheaders = "$cts_dir/$distro.headers";
     if (! -e $ctarget or (!$Opt{local} && -M $ctarget > .25)) {
@@ -110,14 +110,18 @@ sub _download_overview {
 
 sub _parse_html {
     my($ctarget, %Opt) = @_;
-    my $tree = HTML::TreeBuilder->new;
-    $tree->implicit_tags(1);
-    $tree->p_strict(1);
-    $tree->ignore_ignorable_whitespace(0);
-    my $ccontent = do { open my $fh, $ctarget or die; local $/; <$fh> };
-    $tree->parse_content($ccontent);
-    $tree->eof;
-    my $content = $tree->as_XML;
+    my $content = do { open my $fh, $ctarget or die; local $/; <$fh> };
+    my $preprocesswithtreebuilder = 0; # not needed since barbie switched to XHTML
+    if ($preprocesswithtreebuilder) {
+        require HTML::TreeBuilder;
+        my $tree = HTML::TreeBuilder->new;
+        $tree->implicit_tags(1);
+        $tree->p_strict(1);
+        $tree->ignore_ignorable_whitespace(0);
+        $tree->parse_content($content);
+        $tree->eof;
+        $content = $tree->as_XML;
+    }
     my $parser = XML::LibXML->new;;
     $parser->keep_blanks(0);
     $parser->clean_namespaces(1);
@@ -132,29 +136,49 @@ sub _parse_html {
     my $nsu = $doc->documentElement->namespaceURI;
     $xc->registerNs('x', $nsu) if $nsu;
     my($selected_release_ul,$selected_release_distrov,$excuse_string);
+    my($cparentdiv)
+        = $nsu ?
+            $xc->findnodes("/x:html/x:body/x:div[\@id = 'doc']") :
+                $doc->findnodes("/html/body/div[\@id = 'doc']");
+    my(@releasedivs) = $nsu ?
+        $xc->findnodes("//x:div[x:h2 and x:ul]",$cparentdiv) :
+            $cparentdiv->findnodes("//div[h2 and ul]");
+    my $releasediv;
     if ($Opt{vdistro}) {
         $excuse_string = "selected distro '$Opt{vdistro}'";
-        ($selected_release_distrov) = $nsu ? $xc->findvalue("/x:html/x:body/x:div[\@id = 'doc']/x:div//x:h2[x:a/\@id = '$Opt{vdistro}']/x:a/\@id") :
-            $doc->findvalue("/html/body/div[\@id = 'doc']/div//h2[a/\@id = '$Opt{vdistro}']/a/\@id");
-        ($selected_release_ul) = $nsu ? $xc->findnodes("/x:html/x:body/x:div[\@id = 'doc']/x:div//x:h2[x:a/\@id = '$Opt{vdistro}']/following-sibling::ul[1]") :
-            $doc->findnodes("/html/body/div[\@id = 'doc']/div//h2[a/\@id = '$Opt{vdistro}']/following-sibling::ul[1]");
+      RELEASE: for my $i (0..$#releasedivs) {
+            my($x) = $nsu ?
+                $xc->findvalue("x:h2/x:a[2]/\@name",$releasedivs[$i]) :
+                    $releasedivs[$i]->findvalue("h2/a[2]/\@name");
+            $DB::single=1;
+            if ($x eq $Opt{vdistro}) {
+                $releasediv = $i;
+                last RELEASE;
+            }
+        }
     } else {
         $excuse_string = "any distro";
-        ($selected_release_distrov) = $nsu ? $xc->findvalue("/x:html/x:body/x:div[\@id = 'doc']/x:div//x:h2[1]/x:a/\@id") :
-            $doc->findvalue("/html/body/div[\@id = 'doc']/div//h2[1]/a/\@id");
-        ($selected_release_ul) = $nsu ? $xc->findnodes("/x:html/x:body/x:div[\@id = 'doc']/x:div//x:ul[1]") :
-            $doc->findnodes("/html/body/div[\@id = 'doc']/div//ul[1]");
+        $releasediv = 0;
     }
-    unless ($selected_release_distrov) {
+    unless (defined $releasediv) {
         warn "Warning: could not find $excuse_string in '$ctarget'";
         return;
     }
+    ($selected_release_distrov) = $nsu ?
+        $xc->findvalue("x:h2/x:a[2]/\@name",$releasedivs[$releasediv]) :
+            $releasedivs[$releasediv]->findvalue("h2/a[2]/\@name");
+    ($selected_release_ul) = $nsu ?
+        $xc->findnodes("x:ul",$releasedivs[$releasediv]) :
+            $releasedivs[$releasediv]->findnodes("ul");
     print "SELECTED: $selected_release_distrov\n";
-    my($ok,$id);
+    my($id);
     my @all;
-    for my $test ($nsu ? $xc->findnodes("x:li",$selected_release_ul) : $selected_release_ul->findnodes("li")) {
-        $ok = $nsu ? $xc->findvalue("x:span[1]/\@class",$test) : $test->findvalue("span[1]/\@class");
-        $id = $nsu ? $xc->findvalue("x:a[1]/text()",$test)     : $test->findvalue("a[1]/text()");
+    for my $test ($nsu ?
+                  $xc->findnodes("x:li",$selected_release_ul) :
+                  $selected_release_ul->findnodes("li")) {
+        $id = $nsu ?
+            $xc->findvalue("x:a[1]/text()",$test)     :
+                $test->findvalue("a[1]/text()");
         push @all, {id=>$id};
         return if $Signal;
     }
@@ -234,7 +258,7 @@ sub parse_distro {
     mkpath $cts_dir;
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
-    $Opt{ctformat} ||= "yaml";
+    $Opt{ctformat} ||= $default_ctformat;
     if ($Opt{ctformat} eq "html") {
         $reports = _parse_html($ctarget,%Opt);
     } else {

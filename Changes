@@ -1,7 +1,13 @@
-2008-09-28  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+2008-09-29  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
-	* packagig issues: remove the overly clever idea to get the version into
+	* release 0.0.11
+
+	* packaging issues: remove the overly clever idea to get the version into
 	the manpage. It screws the enduser who is using MM->parse_version.
+
+	* Since Barbie has switched to XHTML, drop HTML::TreeBuilder and parse
+	directly with XML::LibXML, set the default downloaded file back to html
+	because it is easier to debug and generally gets more attention.
 
 2008-09-21  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 

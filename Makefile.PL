@@ -43,7 +43,6 @@ WriteMakefile
                      'DateTime::Format::Strptime' => 0,
                      'File::Path' => 0,
                      'Getopt::Long' => 0,
-                     'HTML::TreeBuilder' => 0,
                      'IO::Prompt' => 0,
                      'LWP::UserAgent' => 0,
                      'Pod::Usage' => 0,
