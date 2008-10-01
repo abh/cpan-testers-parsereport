@@ -96,7 +96,7 @@ sub _download_overview {
                 }
             }
         } elsif (304 == $resp->code) {
-            print "DONE (not modified)\n";
+            print "DONE (not modified)\n" if $Opt{verbose};
             my $atime = my $mtime = time;
             utime $atime, $mtime, $cheaders;
         } else {
@@ -149,30 +149,48 @@ sub _parse_html {
     my $releasediv;
     if ($Opt{vdistro}) {
         $excuse_string = "selected distro '$Opt{vdistro}'";
+        my($fallbacktoversion) = $Opt{vdistro} =~ /(\d+\..*)/;
       RELEASE: for my $i (0..$#releasedivs) {
+            my $picked = "";
             my($x) = $nsu ?
                 $xc->findvalue("x:h2/x:a[2]/\@name",$releasedivs[$i]) :
                     $releasedivs[$i]->findvalue("h2/a[2]/\@name");
             $DB::single=1;
-            if ($x eq $Opt{vdistro}) {
-                $releasediv = $i;
-                last RELEASE;
+            if ($x) {
+                if ($x eq $Opt{vdistro}) {
+                    $releasediv = $i;
+                    $picked = " (picked)";
+                }
+                print "FOUND DISTRO: $x$picked\n";
+            } else {
+                ($x) = $nsu ?
+                    $xc->findvalue("x:h2/x:a[1]/\@name",$releasedivs[$i]) :
+                        $releasedivs[$i]->findvalue("h2/a[1]/\@name");
+                if ($x eq $fallbacktoversion) {
+                    $releasediv = $i;
+                    $picked = " (picked)";
+                }
+                print "FOUND VERSION: $x$picked\n";
             }
         }
     } else {
         $excuse_string = "any distro";
-        $releasediv = 0;
     }
     unless (defined $releasediv) {
-        warn "Warning: could not find $excuse_string in '$ctarget'";
-        return;
+        $releasediv = 0;
     }
+    $DB::single=1;
+    # using a[1] because a[2] is missing on the first entry
     ($selected_release_distrov) = $nsu ?
-        $xc->findvalue("x:h2/x:a[2]/\@name",$releasedivs[$releasediv]) :
-            $releasedivs[$releasediv]->findvalue("h2/a[2]/\@name");
+        $xc->findvalue("x:h2/x:a[1]/\@name",$releasedivs[$releasediv]) :
+            $releasedivs[$releasediv]->findvalue("h2/a[1]/\@name");
     ($selected_release_ul) = $nsu ?
         $xc->findnodes("x:ul",$releasedivs[$releasediv]) :
             $releasedivs[$releasediv]->findnodes("ul");
+    unless (defined $selected_release_distrov) {
+        warn "Warning: could not find $excuse_string in '$ctarget'";
+        return;
+    }
     print "SELECTED: $selected_release_distrov\n";
     my($id);
     my @all;
