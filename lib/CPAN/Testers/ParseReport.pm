@@ -63,7 +63,10 @@ $dumpvar is a hashreference that gets filled with data.
     my $ua;
     sub _ua {
         return $ua if $ua;
-        $ua = LWP::UserAgent->new;
+        $ua = LWP::UserAgent->new
+            (
+             keep_alive => 1,
+            );
         $ua->parse_head(0);
         $ua;
     }
