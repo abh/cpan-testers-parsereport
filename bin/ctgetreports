@@ -104,7 +104,7 @@ and the query itself. Qualifiers are one of the following
   env        environment variables
              e.g.: env:TERM
   meta       all other parameters
-             e.g.: meta:perl, meta:from
+             e.g.: meta:perl, meta:from, meta:date, meta:writer
   qr         boolean set if the appended regexp matches the report
              e.g.: qr:'division by zero'
 
