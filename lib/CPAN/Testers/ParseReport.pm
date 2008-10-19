@@ -72,6 +72,20 @@ $dumpvar is a hashreference that gets filled with data.
     }
 }
 
+{
+    my $xp;
+    sub _xp {
+        return $xp if $xp;
+        $xp = XML::LibXML->new;
+        $xp->keep_blanks(0);
+        $xp->clean_namespaces(1);
+        my $catalog = __FILE__;
+        $catalog =~ s|ParseReport.pm$|ParseReport/catalog|;
+        $xp->load_catalog($catalog);
+        return $xp;
+    }
+}
+
 sub _download_overview {
     my($cts_dir, $distro, %Opt) = @_;
     my $format = $Opt{ctformat} ||= $default_ctformat;
@@ -131,16 +145,13 @@ sub _parse_html {
         $tree->eof;
         $content = $tree->as_XML;
     }
-    my $parser = XML::LibXML->new;;
-    $parser->keep_blanks(0);
-    $parser->clean_namespaces(1);
+    my $parser = _xp();
     my $doc = eval { $parser->parse_string($content) };
     my $err = $@;
     unless ($doc) {
         my $distro = basename $ctarget;
         die sprintf "Error while parsing %s\: %s", $distro, $err;
     }
-    $parser->clean_namespaces(1);
     my $xc = XML::LibXML::XPathContext->new($doc);
     my $nsu = $doc->documentElement->namespaceURI;
     $xc->registerNs('x', $nsu) if $nsu;
