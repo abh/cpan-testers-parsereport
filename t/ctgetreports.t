@@ -2,15 +2,26 @@
 
 use Test::More;
 use File::Spec;
+use CPAN::Testers::ParseReport;
 
 my $plan;
 
-BEGIN {
-      $plan += 1;
-}
-
 {
-      ok(1);
+    BEGIN {
+        $plan += 1;
+    }
+    my %Opt = (
+               'q' => ["meta:perl", "meta:from"],
+               'local' => 1,
+               'cachedir' => 't/var',
+               'quiet' => 1,
+              );
+    CPAN::Testers::ParseReport::parse_distro
+          (
+           "Scriptalicious",
+           %Opt,
+          );
+    ok(1);
 }
 
 BEGIN {

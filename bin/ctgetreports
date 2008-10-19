@@ -57,6 +57,11 @@ Query, may be repeated.
 
 Example: C<--q mod:Clone --q meta:writer>
 
+=item B<--quiet!>
+
+Do while (not output the usual query lines per parsed report. Quiet
+overrules verbose.
+
 =item B<--raw!>
 
 Boolean which, if set, causes the full (HTML) report to be

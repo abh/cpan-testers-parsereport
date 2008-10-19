@@ -100,22 +100,22 @@ sub _download_overview {
             if (-e $ctarget && $Opt{verbose}) {
                 my(@stat) = stat _;
                 my $timestamp = gmtime $stat[9];
-                print "(timestamp $timestamp GMT)\n";
+                print STDERR "(timestamp $timestamp GMT)\n" unless $Opt{quiet};
             }
-            print "Fetching $ctarget..." if $Opt{verbose};
+            print STDERR "Fetching $ctarget..." if $Opt{verbose} && !$Opt{quiet};
             my $uri = "http://www.cpantesters.org/show/$distro.$format";
             my $resp = _ua->mirror($uri,$ctarget);
             if ($resp->is_success) {
-                print "DONE\n" if $Opt{verbose};
+                print STDERR "DONE\n" if $Opt{verbose} && !$Opt{quiet};
                 open my $fh, ">", $cheaders or die;
                 for ($resp->headers->as_string) {
                     print $fh $_;
                     if ($Opt{verbose} && $Opt{verbose}>1) {
-                        print;
+                        print STDERR $_ unless $Opt{quiet};
                     }
                 }
             } elsif (304 == $resp->code) {
-                print "DONE (not modified)\n" if $Opt{verbose};
+                print STDERR "DONE (not modified)\n" if $Opt{verbose} && !$Opt{quiet};
                 my $atime = my $mtime = time;
                 utime $atime, $mtime, $cheaders;
             } else {
@@ -178,7 +178,7 @@ sub _parse_html {
                     $releasediv = $i;
                     $picked = " (picked)";
                 }
-                print "FOUND DISTRO: $x$picked\n";
+                print STDERR "FOUND DISTRO: $x$picked\n" unless $Opt{quiet};
             } else {
                 ($x) = $nsu ?
                     $xc->findvalue("x:h2/x:a[1]/\@name",$releasedivs[$i]) :
@@ -187,7 +187,7 @@ sub _parse_html {
                     $releasediv = $i;
                     $picked = " (picked)";
                 }
-                print "FOUND VERSION: $x$picked\n";
+                print STDERR "FOUND VERSION: $x$picked\n" unless $Opt{quiet};
             }
         }
     } else {
@@ -208,7 +208,7 @@ sub _parse_html {
         warn "Warning: could not find $excuse_string in '$ctarget'";
         return;
     }
-    print "SELECTED: $selected_release_distrov\n";
+    print STDERR "SELECTED: $selected_release_distrov\n" unless $Opt{quiet};
     my($id);
     my @all;
     for my $test ($nsu ?
@@ -248,7 +248,7 @@ sub _parse_yaml {
         warn "Warning: could not find $excuse_string in '$ctarget'";
         return;
     }
-    print "SELECTED: $selected_release_distrov\n";
+    print STDERR "SELECTED: $selected_release_distrov\n" unless $Opt{quiet};
     my @all;
     for my $test (@$arr) {
         my $id = $test->{id};
@@ -273,15 +273,15 @@ sub parse_single_report {
         }
     } else {
         if (! -e $target) {
-            print "Fetching $target..." if $Opt{verbose};
+            print STDERR "Fetching $target..." if $Opt{verbose} && !$Opt{quiet};
             my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
             if ($resp->is_success) {
                 if ($Opt{verbose}) {
                     my(@stat) = stat $target;
                     my $timestamp = gmtime $stat[9];
-                    print "(timestamp $timestamp GMT)\n";
+                    print STDERR "(timestamp $timestamp GMT)\n" unless $Opt{quiet};
                     if ($Opt{verbose} > 1) {
-                        print $resp->headers->as_string;
+                        print STDERR $resp->headers->as_string unless $Opt{quiet};
                     }
                 }
                 my $headers = "$target.headers";
@@ -594,10 +594,10 @@ sub parse_report {
         my $have  = $extract{$want} || "";
         $diag .= " $want\[$have]";
     }
-    printf " %-4s %8d%s\n", $ok, $id, $diag;
+    printf STDERR " %-4s %8d%s\n", $ok, $id, $diag unless $Opt{quiet};
     if ($Opt{raw}) {
         $report =~ s/\s+\z//;
-        print $report, "\n================\n";
+        print STDERR $report, "\n================\n" unless $Opt{quiet};
     }
     if ($Opt{interactive}) {
         require IO::Prompt;
@@ -610,7 +610,7 @@ sub parse_report {
              -u => qr/[ynq]/,
              -onechar,
             );
-        print "\n";
+        print STDERR "\n" unless $Opt{quiet};
         if ($ans eq "y") {
             open my $ifh, "<", $target or die "Could not open $target: $!";
             $Opt{pager} ||= "less";
