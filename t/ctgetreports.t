@@ -15,6 +15,7 @@ my $plan;
                'local' => 1,
                'cachedir' => 't/var',
                'quiet' => 1,
+               'dumpvars' => ".",
               );
     CPAN::Testers::ParseReport::parse_distro
           (
@@ -23,6 +24,8 @@ my $plan;
           );
     ok(1);
 }
+
+unlink "ctgetreports.out";
 
 BEGIN {
       plan tests => $plan;

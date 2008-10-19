@@ -49,7 +49,8 @@ WriteMakefile
                      'Test::More' => 0,
                      'Test::Pod' => 0,
                      'XML::LibXML' => 0,
-                     'XML::LibXML::XPathContext' => 0
+                     'XML::LibXML::XPathContext' => 0,
+                     'YAML::Syck' => 0,
                     },
      'INSTALLDIRS' => 'site',
      'EXE_FILES' => [
