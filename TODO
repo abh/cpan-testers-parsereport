@@ -1,3 +1,16 @@
+2008-10-02  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* upload as bz2
+
+	* Todo: --solve switch
+
+	* env seems to be stepping into config, I see env:optimize for example.
+
+2008-10-01  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* Todo: entities, namely &amp; good to test in overload-eval and -q
+	qr:(.*main::.*)
+
 2008-09-29  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* Todo: write a test that parses copies of these downloaded files and
