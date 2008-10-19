@@ -1,15 +1,19 @@
 2008-10-19  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
-	* all output goes now to STDERR except for the outfut for --dumpvars
+	* release 0.0.12
+
+	* all output goes now to STDERR except for the output for --dumpvars
 	which goes to --dumpfile's option (default: ./ctgetreports.out)
 
 	* XML::LibXML parser object now has a catalog and is being cached.
 
 	* new option --quiet to suppress all output
 
-	* we have real test now (but not many individual tests)
+	* we have a real test now (but not many individual tests)
 
 	* env state was not turned off correctly, fixed.
+
+	* entities are now decoded
 
 2008-09-29  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 

@@ -10,10 +10,10 @@ my $plan;
 
 {
     BEGIN {
-        $plan += 3;
+        $plan += 5;
     }
     my %Opt = (
-               'q' => ["meta:perl", "meta:from"],
+               'q' => ["meta:perl", "meta:from", "qr:(Undefined.*)"],
                'local' => 1,
                'cachedir' => 't/var',
                'quiet' => 1,
@@ -29,6 +29,10 @@ my $plan;
     is($count, 130, "found 130 report via meta:from");
     is($Y->{"meta:ok"}{PASS}{PASS}, 79, "found 79 PASS");
     ok(!$Y->{"env:alignbytes"}, "there is no such thing as an environment alignbytes");
+    my $undefined = $Y->{'qr:(Undefined.*)'};
+    my($the_warning) = grep {length} keys %$undefined;
+    ok($undefined,"found warning: '$the_warning'");
+    like($the_warning, qr/&main::/, "the ampersand is escaped");
 }
 
 unlink "ctgetreports.out";

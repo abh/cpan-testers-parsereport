@@ -6,6 +6,7 @@ use strict;
 use DateTime::Format::Strptime;
 use File::Basename qw(basename);
 use File::Path qw(mkpath);
+use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;
 use XML::LibXML;
 use XML::LibXML::XPathContext;
@@ -329,6 +330,10 @@ Reads one report. $target is the local filename to read. $dumpvars is
 a hashref which gets filled. %Opt are the options as described in the
 C<ctgetreports> manpage.
 
+Note: this parsing is a bit dirty but as it seems good enough I'm not
+inclined to change it. We parse HTML with a regexps only, no HTML
+parser working, only the entities are decoded.
+
 =cut
 sub parse_report {
     my($target,$dumpvars,%Opt) = @_;
@@ -343,7 +348,7 @@ sub parse_report {
     if ($Opt{raw} || @qr) {
         open my $fh, $target or die "Could not open '$target': $!";
         local $/;
-        $report = <$fh>;
+        $report = decode_entities <$fh>;
         close $fh;
         for my $qr (@qr) {
             my $cqr = eval "qr{$qr}";
@@ -388,7 +393,7 @@ sub parse_report {
     seek $fh, 0, 0;
   LINE: while (<$fh>) {
         chomp; # reliable line endings?
-        s/&quot;//; # HTML !!!
+        $_ = decode_entities $_;
         if (/^--------/ && $previous_line[-2] && $previous_line[-2] =~ /^--------/) {
             $current_headline = $previous_line[-1];
             if ($current_headline =~ /PROGRAM OUTPUT/) {
