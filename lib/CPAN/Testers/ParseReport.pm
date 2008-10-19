@@ -408,6 +408,7 @@ sub parse_report {
             } elsif (/Summary of my perl5 \((.+)\) configuration:/) {
                 $p5 = $1;
                 $in_summary = 1;
+                $in_env_context = 0;
             }
             if ($p5) {
                 my($r,$v,$s,$p);
@@ -552,11 +553,13 @@ sub parse_report {
                 }
             }
             if (/(\s+)(Module\s+)(Need\s+)Have/) {
+                $in_env_context = 0;
                 $moduleunpack = {
                                  tpl => 'a'.length($1).'a'.length($2).'a'.length($3).'a*',
                                  type => 1,
                                 };
             } elsif (/(\s+)(Module Name\s+)(Have)(\s+)Want/) {
+                $in_env_context = 0;
                 my $adjust_1 = 0;
                 my $adjust_2 = -length($4);
                 my $adjust_3 = length($4);
@@ -569,10 +572,12 @@ sub parse_report {
             }
         }
         if (/PREREQUISITES|Prerequisite modules loaded/) {
+            $in_env_context = 0;
             $expect_prereq=1;
         }
         if ($expecting_toolchain_soon) {
             if (/(\s+)(Module\s+) Have/) {
+                $in_env_context = 0;
                 $expect_toolchain=1;
                 $expecting_toolchain_soon=0;
                 $moduleunpack = {
@@ -582,6 +587,7 @@ sub parse_report {
             }
         }
         if (/toolchain versions installed/) {
+            $in_env_context = 0;
             $expecting_toolchain_soon=1;
         }
     }                           # LINE
