@@ -44,8 +44,8 @@ After every parsed report asks if you want to see it in a pager.
 
 =item B<--local>
 
-Do not mirror more than neccessary. Use a local *.html file if present
-even if older than 24 hours.
+Do not mirror, use a local *.html file. Dies if the HTML or YAML file
+is missing, skips missing report files.
 
 =item B<--pager=s>
 

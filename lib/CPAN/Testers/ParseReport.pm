@@ -77,35 +77,41 @@ sub _download_overview {
     my $format = $Opt{ctformat} ||= $default_ctformat;
     my $ctarget = "$cts_dir/$distro.$format";
     my $cheaders = "$cts_dir/$distro.headers";
-    if (! -e $ctarget or (!$Opt{local} && -M $ctarget > .25)) {
-        if (-e $ctarget && $Opt{verbose}) {
-            my(@stat) = stat _;
-            my $timestamp = gmtime $stat[9];
-            print "(timestamp $timestamp GMT)\n";
+    if ($Opt{local}) {
+        unless (-e $ctarget) {
+            die "Alert: No local file '$ctarget' found, cannot continue\n";
         }
-        print "Fetching $ctarget..." if $Opt{verbose};
-        my $uri = "http://www.cpantesters.org/show/$distro.$format";
-        my $resp = _ua->mirror($uri,$ctarget);
-        if ($resp->is_success) {
-            print "DONE\n" if $Opt{verbose};
-            open my $fh, ">", $cheaders or die;
-            for ($resp->headers->as_string) {
-                print $fh $_;
-                if ($Opt{verbose} && $Opt{verbose}>1) {
-                    print;
-                }
+    } else {
+        if (! -e $ctarget or -M $ctarget > .25) {
+            if (-e $ctarget && $Opt{verbose}) {
+                my(@stat) = stat _;
+                my $timestamp = gmtime $stat[9];
+                print "(timestamp $timestamp GMT)\n";
             }
-        } elsif (304 == $resp->code) {
-            print "DONE (not modified)\n" if $Opt{verbose};
-            my $atime = my $mtime = time;
-            utime $atime, $mtime, $cheaders;
-        } else {
-            die sprintf
-                (
-                 "No success downloading %s: %s",
-                 $uri,
-                 $resp->status_line,
-                );
+            print "Fetching $ctarget..." if $Opt{verbose};
+            my $uri = "http://www.cpantesters.org/show/$distro.$format";
+            my $resp = _ua->mirror($uri,$ctarget);
+            if ($resp->is_success) {
+                print "DONE\n" if $Opt{verbose};
+                open my $fh, ">", $cheaders or die;
+                for ($resp->headers->as_string) {
+                    print $fh $_;
+                    if ($Opt{verbose} && $Opt{verbose}>1) {
+                        print;
+                    }
+                }
+            } elsif (304 == $resp->code) {
+                print "DONE (not modified)\n" if $Opt{verbose};
+                my $atime = my $mtime = time;
+                utime $atime, $mtime, $cheaders;
+            } else {
+                die sprintf
+                    (
+                     "No success downloading %s: %s",
+                     $uri,
+                     $resp->status_line,
+                    );
+            }
         }
     }
     return $ctarget;
@@ -249,23 +255,30 @@ sub parse_single_report {
     my $nnt_dir = "$Opt{cachedir}/nntp-testers";
     mkpath $nnt_dir;
     my $target = "$nnt_dir/$id";
-    unless (-e $target) {
-        print "Fetching $target..." if $Opt{verbose};
-        my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
-        if ($resp->is_success) {
-            if ($Opt{verbose}) {
-                my(@stat) = stat $target;
-                my $timestamp = gmtime $stat[9];
-                print "(timestamp $timestamp GMT)\n";
-                if ($Opt{verbose} > 1) {
-                    print $resp->headers->as_string;
+    if ($Opt{local}) {
+        unless (-e $target) {
+            warn "Warning: No local file '$target' found, skipping\n";
+            return;
+        }
+    } else {
+        if (! -e $target) {
+            print "Fetching $target..." if $Opt{verbose};
+            my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
+            if ($resp->is_success) {
+                if ($Opt{verbose}) {
+                    my(@stat) = stat $target;
+                    my $timestamp = gmtime $stat[9];
+                    print "(timestamp $timestamp GMT)\n";
+                    if ($Opt{verbose} > 1) {
+                        print $resp->headers->as_string;
+                    }
                 }
+                my $headers = "$target.headers";
+                open my $fh, ">", $headers or die;
+                print $fh $resp->headers->as_string;
+            } else {
+                die $resp->status_line;
             }
-            my $headers = "$target.headers";
-            open my $fh, ">", $headers or die;
-            print $fh $resp->headers->as_string;
-        } else {
-            die $resp->status_line;
         }
     }
     parse_report($target, $dumpvars, %Opt);
