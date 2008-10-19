@@ -315,7 +315,10 @@ sub parse_distro {
         last if $Signal;
     }
     if ($Opt{dumpvars}) {
-        print YAML::Syck::Dump(\%dumpvars);
+        my $dumpfile = $Opt{dumpfile} || "ctgetreports.out";
+        open my $fh, ">", $dumpfile or die "Could not open '$dumpfile' for writing: $!";
+        print $fh YAML::Syck::Dump(\%dumpvars);
+        close $fh or die "Could not close '$dumpfile': $!"
     }
 }
 

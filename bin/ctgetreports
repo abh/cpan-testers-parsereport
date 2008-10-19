@@ -29,6 +29,10 @@ options are C<html> and C<yaml>. Default should be html but is
 temporarily switched to yaml because the cpantesters site is under
 reconstruction.
 
+=item B<--dumpfile=s>
+
+If dumpvars are specified, dump them into this file. Defaults to "ctgetreports.out".
+
 =item B<--dumpvars=s>
 
 Dump all queryable variables matching the regular expression given as
@@ -97,6 +101,7 @@ further inspection.
 
 We always only fetch the reports for the most recent (optionally
 picked) release. Target root directory is C<$HOME/var/cpantesters>
+(can be overridden with the --cachedir option).
 
 The C<--q> paramater can be repeated. It takes one argument which
 stands for a query. This query must consist of two parts, a qualifier
