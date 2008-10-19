@@ -9,7 +9,7 @@ README
 SIGNATURE			Public-key signature (added by MakeMaker)
 t/00-load.t
 t/ctgetreports.t
-t/metayaml.t
+t/01-metayaml.t
 t/pod-coverage.t
 t/pod.t
 t/run.t
