@@ -4,5 +4,6 @@
   <!-- ourselves -->
   <public publicId="-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN" uri="catalog.dtd" />
   <public publicId="-//W3C//DTD HTML 4.0 Transitional//EN" uri="loose.dtd" />
+  <public publicId="-//W3C//DTD XHTML 1.0 Transitional//EN" uri="xhtml1-transitional.dtd" />
 
 </catalog>
