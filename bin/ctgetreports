@@ -78,6 +78,13 @@ with this number.
 
 Example: C<--report 1238673>
 
+=item B<--solve!>
+
+(TBD) Experimental function which tries to identify the best
+contenders for a blame using Statistics::Regression. Currently only
+univariate and with simple heuristics. Implies C<--dumpvars=.> unless
+the caller sets dumpvars himself.
+
 =item B<--vdistro=s>
 
 Versioned distro. Needed if we do not want the most recent. Makes no
@@ -210,6 +217,13 @@ if ($Opt{report}) {
 } else {
     if (! @ARGV) {
         pod2usage(2);
+    }
+}
+
+if ($Opt{solve}) {
+    eval { require Statistics::Regression };
+    if ($@) {
+        die "Statistics::Regression required for solved option: $@";
     }
 }
 

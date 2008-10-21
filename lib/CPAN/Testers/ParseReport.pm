@@ -22,7 +22,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-use version; our $VERSION = qv('0.0.12');
+use version; our $VERSION = qv('0.0.13');
 
 =head1 SYNOPSIS
 
@@ -302,6 +302,10 @@ sub parse_distro {
     $Opt{cachedir} ||= "$ENV{HOME}/var/cpantesters";
     my $cts_dir = "$Opt{cachedir}/cpantesters-show";
     mkpath $cts_dir;
+    if ($Opt{solve}) {
+        require Statistics::Regression;
+        $Opt{dumpvars} ||= ".";
+    }
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
     $Opt{ctformat} ||= $default_ctformat;
@@ -321,6 +325,9 @@ sub parse_distro {
         open my $fh, ">", $dumpfile or die "Could not open '$dumpfile' for writing: $!";
         print $fh YAML::Syck::Dump(\%dumpvars);
         close $fh or die "Could not close '$dumpfile': $!"
+    }
+    if ($Opt{solve}) {
+        solve(\%dumpvars);
     }
 }
 
@@ -639,6 +646,40 @@ sub parse_report {
             return;
         }
     }
+}
+
+=head2 solve
+
+(TBD)
+
+=cut
+
+sub solve {
+    my($V) = @_;
+    require Statistics::Regression;
+    for my $variable (sort keys %$V) {
+        my $distribution = $V->{$variable};
+        for my $value (sort keys %$distribution) {
+            my $pf = $distribution->{$value};
+            $pf->{PASS} ||= 0;
+            $pf->{FAIL} ||= 0;
+            if (
+                $pf->{PASS} xor $pf->{FAIL}
+               ) {
+                my $vl = 40;
+                substr($value,$vl) = "..." if length $value > 3+$vl;
+                warn sprintf
+                    (
+                     "%4d %4d %-23s | %s\n",
+                     $pf->{PASS},
+                     $pf->{FAIL},
+                     $variable,
+                     $value,
+                    );
+            }
+        }
+    }
+    die "FIXME";
 }
 
 =head1 AUTHOR
