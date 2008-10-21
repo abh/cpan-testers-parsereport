@@ -1,6 +1,11 @@
 bin/ctgetreports
+bin/ctsolvereports
 Changes
 lib/CPAN/Testers/ParseReport.pm
+lib/CPAN/Testers/ParseReport/catalog
+lib/CPAN/Testers/ParseReport/catalog.dtd
+lib/CPAN/Testers/ParseReport/loose.dtd
+lib/CPAN/Testers/ParseReport/xhtml1-transitional.dtd
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
@@ -8,8 +13,8 @@ META.yml
 README
 SIGNATURE			Public-key signature (added by MakeMaker)
 t/00-load.t
-t/ctgetreports.t
 t/01-metayaml.t
+t/ctgetreports.t
 t/pod-coverage.t
 t/pod.t
 t/run.t
