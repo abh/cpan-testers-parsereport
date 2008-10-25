@@ -489,7 +489,6 @@ sub parse_report {
             if (/^\s*$/ || m|</pre>|) {
                 $in_summary = 0;
             } else {
-                s/&quot;/"/g;
                 my(%kv) = /\G,?\s*([^=]+)=('[^']+?'|\S+)/gc;
                 while (my($k,$v) = each %kv) {
                     my $ck = "conf:$k";
