@@ -87,11 +87,24 @@ Example: C<--report 1238673>
 
 =item B<--solve!>
 
-(TBD) Experimental function which tries to identify the best
-contenders for a blame using Statistics::Regression. Currently only
-univariate and with simple heuristics. Implies C<--dumpvars=.> unless
+Experimental function which tries to identify the best contenders for
+a blame using Statistics::Regression. Currently only limited to single
+variables and with simple heuristics. Implies C<--dumpvars=.> unless
 the caller sets dumpvars himself. And implies C<--quiet=1> unless the
 caller sets quiet to zero.
+
+The function prints at the moment to STDOUT the top 5 candidates
+according to R^2 with their regression analysis. The output could
+profit from better formatting.
+
+A few words of advise: do not take the results as a prove ever. Take
+them just as a hint where you can most probablt prove a causal
+relationship. And keep in mind that causal relationships can be the
+other direction as well.
+
+If you want to extend on that approach, I recommend you study the
+ctgetreports.out file where you find all the data you'd need and feed
+your assumptions to Statistics::Regression.
 
 =item B<--vdistro=s>
 

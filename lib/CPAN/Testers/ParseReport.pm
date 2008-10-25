@@ -667,13 +667,18 @@ sub parse_report {
 (TBD)
 
 =cut
-
+{
+    my %never_solve_on = map {($_ => 1)}
+        (
+         "env:PATH",
+        );
 sub solve {
     my($V) = @_;
     require Statistics::Regression;
     my @regression;
     for my $variable (sort keys %$V) {
         next if $variable eq "==DATA==";
+        next if $never_solve_on{$variable};
         my $value_distribution = $V->{$variable};
         my $keys = keys %$value_distribution;
         my @results;
@@ -728,13 +733,25 @@ sub solve {
                 }
                 $reg->include($y, \%obs);
             }
-            $reg->print;
+            eval {$reg->standarderrors};
+            if ($@) {
+                # require YAML::Syck; print STDERR "Line " . __LINE__ . ", File: " . __FILE__ . "\n" . YAML::Syck::Dump({error=>"could not determine standarderrors",variable=>$variable,k=>$reg->k, n=>$reg->n}); # XXX
+            } else {
+                # $reg->print;
+                push @regression, $reg;
+            }
         } else {
             # irrelevant observation or something that needs further
             # tweaking, like date
         }
     }
-    die "FIXME";
+    my $top = 5;
+    print "\n\n\n          top five candidates\n\n\n";
+    for my $reg (sort {$b->rsq <=> $a->rsq} @regression) {
+        $reg->print;
+        last if --$top <= 0;
+    }
+}
 }
 
 =head1 AUTHOR
