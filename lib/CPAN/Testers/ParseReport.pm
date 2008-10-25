@@ -8,6 +8,7 @@ use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;
+use List::Util qw(max sum);
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 
@@ -306,7 +307,8 @@ sub parse_distro {
     mkpath $cts_dir;
     if ($Opt{solve}) {
         require Statistics::Regression;
-        $Opt{dumpvars} ||= ".";
+        $Opt{dumpvars} = "." unless defined $Opt{dumpvars};
+        $Opt{quiet} = 1 unless defined $Opt{quiet};
     }
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
@@ -500,8 +502,8 @@ sub parse_report {
                     $v =~ s/\s+$//;
                     if ($qr && $ck =~ $qr) {
                         $dumpvars->{$ck}{$v}{$ok}++;
-                    }
-                    if ($conf_vars{$ck}) {
+                        $extract{$ck} = $v;
+                    } elsif ($conf_vars{$ck}) {
                         $extract{$ck} = $v;
                     }
                 }
@@ -617,6 +619,10 @@ sub parse_report {
         my $have  = $extract{$want} || "";
         $diag .= " $want\[$have]";
     }
+    if ($Opt{solve}) {
+        my $data = $dumpvars->{"==DATA=="} ||= [];
+        push @$data, \%extract;
+    }
     printf STDERR " %-4s %8d%s\n", $ok, $id, $diag unless $Opt{quiet};
     if ($Opt{raw}) {
         $report =~ s/\s+\z//;
@@ -658,27 +664,37 @@ sub parse_report {
 sub solve {
     my($V) = @_;
     require Statistics::Regression;
+    my @regression;
     for my $variable (sort keys %$V) {
-        my $distribution = $V->{$variable};
-        for my $value (sort keys %$distribution) {
-            my $pf = $distribution->{$value};
+        next if $variable eq "==DATA==";
+        my $value_distribution = $V->{$variable};
+        my $keys = keys %$value_distribution;
+        my @results;
+        for my $value (sort keys %$value_distribution) {
+            my $pf = $value_distribution->{$value};
             $pf->{PASS} ||= 0;
             $pf->{FAIL} ||= 0;
+            push @results, sum map {$pf->{$_}} qw(PASS FAIL);
             if (
                 $pf->{PASS} xor $pf->{FAIL}
                ) {
                 my $vl = 40;
                 substr($value,$vl) = "..." if length $value > 3+$vl;
-                warn sprintf
-                    (
-                     "%4d %4d %-23s | %s\n",
-                     $pf->{PASS},
-                     $pf->{FAIL},
-                     $variable,
-                     $value,
-                    );
+                my $poor_mans_freehand_estimation = 0;
+                if ($poor_mans_freehand_estimation) {
+                    warn sprintf
+                        (
+                         "%4d %4d %-23s | %s\n",
+                         $pf->{PASS},
+                         $pf->{FAIL},
+                         $variable,
+                         $value,
+                        );
+                }
             }
         }
+        my $results = max @results;
+        warn "variable[$variable]keys[$keys]results[$results]\n" unless $results;
     }
     die "FIXME";
 }
