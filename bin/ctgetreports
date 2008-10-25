@@ -90,7 +90,8 @@ Example: C<--report 1238673>
 (TBD) Experimental function which tries to identify the best
 contenders for a blame using Statistics::Regression. Currently only
 univariate and with simple heuristics. Implies C<--dumpvars=.> unless
-the caller sets dumpvars himself.
+the caller sets dumpvars himself. And implies C<--quiet=1> unless the
+caller sets quiet to zero.
 
 =item B<--vdistro=s>
 
