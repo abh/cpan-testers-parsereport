@@ -403,7 +403,13 @@ sub parse_report {
     }
     seek $fh, 0, 0;
   LINE: while (<$fh>) {
-        chomp; # reliable line endings?
+        s/\r?\n\z//;
+        while (/!$/) {
+            my $followupline = <$fh>;
+            $followupline =~ s/^\s+//; # remo leading space
+            $_ .= $followupline;
+            s/\r?\n\z//;
+        }
         $_ = decode_entities $_;
         if (/^--------/ && $previous_line[-2] && $previous_line[-2] =~ /^--------/) {
             $current_headline = $previous_line[-1];
