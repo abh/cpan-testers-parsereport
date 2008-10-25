@@ -620,6 +620,7 @@ sub parse_report {
         $diag .= " $want\[$have]";
     }
     if ($Opt{solve}) {
+        $extract{id} = $id;
         my $data = $dumpvars->{"==DATA=="} ||= [];
         push @$data, \%extract;
     }
@@ -670,11 +671,14 @@ sub solve {
         my $value_distribution = $V->{$variable};
         my $keys = keys %$value_distribution;
         my @results;
+        my @X = qw(const);
         for my $value (sort keys %$value_distribution) {
             my $pf = $value_distribution->{$value};
             $pf->{PASS} ||= 0;
             $pf->{FAIL} ||= 0;
-            push @results, sum map {$pf->{$_}} qw(PASS FAIL);
+            my $provers = sum map {$pf->{$_}} qw(PASS FAIL);
+            push @results, $provers;
+            push @X, "eq_$value";
             if (
                 $pf->{PASS} xor $pf->{FAIL}
                ) {
@@ -694,7 +698,35 @@ sub solve {
             }
         }
         my $results = max @results;
-        warn "variable[$variable]keys[$keys]results[$results]\n" unless $results;
+        if ($results > 1){
+            warn "variable[$variable]keys[$keys]results[$results]\n";
+            my $reg = Statistics::Regression->new("reg_$variable",\@X);
+          RECORD: for my $rec (@{$V->{"==DATA=="}}) {
+                my $y;
+                if ($rec->{"meta:ok"} eq "PASS") {
+                    $y = 1;
+                } elsif ($rec->{"meta:ok"} eq "FAIL") {
+                    $y = 0;
+                } else {
+                    next RECORD;
+                }
+                my %obs;
+                @obs{@X} = (0) x @X;
+                $obs{const} = 1;
+                for my $x (@X) {
+                    next unless $x =~ /^eq_(.+)/;
+                    my $v = $1;
+                    if (exists $rec->{$variable} && defined $rec->{$variable} && $rec->{$variable} eq $v) {
+                        $obs{$x} = 1;
+                    }
+                }
+                $reg->include($y, \%obs);
+            }
+            $reg->print;
+        } else {
+            # irrelevant observation or something that needs further
+            # tweaking, like date
+        }
     }
     die "FIXME";
 }
