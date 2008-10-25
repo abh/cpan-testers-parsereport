@@ -671,6 +671,7 @@ sub parse_report {
     my %never_solve_on = map {($_ => 1)}
         (
          "env:PATH",
+         "meta:date",
         );
 sub solve {
     my($V) = @_;
@@ -681,14 +682,11 @@ sub solve {
         next if $never_solve_on{$variable};
         my $value_distribution = $V->{$variable};
         my $keys = keys %$value_distribution;
-        my @results;
         my @X = qw(const);
         for my $value (sort keys %$value_distribution) {
             my $pf = $value_distribution->{$value};
             $pf->{PASS} ||= 0;
             $pf->{FAIL} ||= 0;
-            my $provers = sum map {$pf->{$_}} qw(PASS FAIL);
-            push @results, $provers;
             push @X, "eq_$value";
             if (
                 $pf->{PASS} xor $pf->{FAIL}
@@ -708,41 +706,35 @@ sub solve {
                 }
             }
         }
-        my $results = max @results;
-        if ($results > 1){
-            warn "variable[$variable]keys[$keys]results[$results]\n";
-            my $reg = Statistics::Regression->new("reg_$variable",\@X);
-          RECORD: for my $rec (@{$V->{"==DATA=="}}) {
-                my $y;
-                if ($rec->{"meta:ok"} eq "PASS") {
-                    $y = 1;
-                } elsif ($rec->{"meta:ok"} eq "FAIL") {
-                    $y = 0;
-                } else {
-                    next RECORD;
-                }
-                my %obs;
-                @obs{@X} = (0) x @X;
-                $obs{const} = 1;
-                for my $x (@X) {
-                    next unless $x =~ /^eq_(.+)/;
-                    my $v = $1;
-                    if (exists $rec->{$variable} && defined $rec->{$variable} && $rec->{$variable} eq $v) {
-                        $obs{$x} = 1;
-                    }
-                }
-                $reg->include($y, \%obs);
-            }
-            eval {$reg->standarderrors};
-            if ($@) {
-                # require YAML::Syck; print STDERR "Line " . __LINE__ . ", File: " . __FILE__ . "\n" . YAML::Syck::Dump({error=>"could not determine standarderrors",variable=>$variable,k=>$reg->k, n=>$reg->n}); # XXX
+        warn "variable[$variable]keys[$keys]\n";
+        my $reg = Statistics::Regression->new($variable,\@X);
+      RECORD: for my $rec (@{$V->{"==DATA=="}}) {
+            my $y;
+            if ($rec->{"meta:ok"} eq "PASS") {
+                $y = 1;
+            } elsif ($rec->{"meta:ok"} eq "FAIL") {
+                $y = 0;
             } else {
-                # $reg->print;
-                push @regression, $reg;
+                next RECORD;
             }
+            my %obs;
+            @obs{@X} = (0) x @X;
+            $obs{const} = 1;
+            for my $x (@X) {
+                next unless $x =~ /^eq_(.+)/;
+                my $v = $1;
+                if (exists $rec->{$variable} && defined $rec->{$variable} && $rec->{$variable} eq $v) {
+                    $obs{$x} = 1;
+                }
+            }
+            $reg->include($y, \%obs);
+        }
+        eval {$reg->standarderrors};
+        if ($@) {
+            # require YAML::Syck; print STDERR "Line " . __LINE__ . ", File: " . __FILE__ . "\n" . YAML::Syck::Dump({error=>"could not determine standarderrors",variable=>$variable,k=>$reg->k, n=>$reg->n}); # XXX
         } else {
-            # irrelevant observation or something that needs further
-            # tweaking, like date
+            # $reg->print;
+            push @regression, $reg;
         }
     }
     my $top = 5;
