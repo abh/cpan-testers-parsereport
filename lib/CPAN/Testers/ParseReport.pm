@@ -12,6 +12,7 @@ use XML::LibXML;
 use XML::LibXML::XPathContext;
 
 our $default_ctformat = "html";
+our $default_cturl = "http://www.cpantesters.org/show";
 our $Signal = 0;
 
 =encoding utf-8
@@ -90,6 +91,7 @@ $dumpvar is a hashreference that gets filled with data.
 sub _download_overview {
     my($cts_dir, $distro, %Opt) = @_;
     my $format = $Opt{ctformat} ||= $default_ctformat;
+    my $cturl = $Opt{cturl} ||= $default_cturl;
     my $ctarget = "$cts_dir/$distro.$format";
     my $cheaders = "$cts_dir/$distro.headers";
     if ($Opt{local}) {
@@ -104,7 +106,7 @@ sub _download_overview {
                 print STDERR "(timestamp $timestamp GMT)\n" unless $Opt{quiet};
             }
             print STDERR "Fetching $ctarget..." if $Opt{verbose} && !$Opt{quiet};
-            my $uri = "http://www.cpantesters.org/show/$distro.$format";
+            my $uri = "$cturl/$distro.$format";
             my $resp = _ua->mirror($uri,$ctarget);
             if ($resp->is_success) {
                 print STDERR "DONE\n" if $Opt{verbose} && !$Opt{quiet};

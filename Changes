@@ -6,6 +6,8 @@
 
 	* meta:writer now also detected on CPANPLUS::Dist::YACSmoke
 
+	* new option --cturl to temporarily switch servers
+
 2008-10-19  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.12

@@ -29,6 +29,13 @@ options are C<html> and C<yaml>. Default should be html but is
 temporarily switched to yaml because the cpantesters site is under
 reconstruction.
 
+=item B<--cturl=s>
+
+Base URL of the cpantesters website. Defaults to
+C<http://www.cpantesters.org/show> but sometimes it is interesting to set
+it to the old URL, C<>http://cpantesters.perl.org/show> to diagnose bugs
+or whatever.
+
 =item B<--dumpfile=s>
 
 If dumpvars are specified, dump them into this file. Defaults to "ctgetreports.out".
