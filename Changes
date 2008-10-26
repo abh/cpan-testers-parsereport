@@ -1,3 +1,9 @@
+2008-10-26  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.14
+
+	* forgot dependency on Statistics::Regression
+
 2008-10-21  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.13

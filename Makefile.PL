@@ -48,6 +48,7 @@ WriteMakefile
                      'LWP::UserAgent'              => 0,
                      'List::Util'                  => 0,
                      'Pod::Usage'                  => 0,
+                     'Statistics::Regression'      => 0,
                      'Test::More'                  => 0,
                      'Test::Pod'                   => 0,
                      'Time::Local'                 => 0,
