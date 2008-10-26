@@ -9,6 +9,7 @@ use File::Path qw(mkpath);
 use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;
 use List::Util qw(max sum);
+use Time::Local ();
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 
@@ -171,6 +172,7 @@ sub _parse_html {
     if ($Opt{vdistro}) {
         $excuse_string = "selected distro '$Opt{vdistro}'";
         my($fallbacktoversion) = $Opt{vdistro} =~ /(\d+\..*)/;
+        $fallbacktoversion = 0 unless defined $fallbacktoversion;
       RELEASE: for my $i (0..$#releasedivs) {
             my $picked = "";
             my($x) = $nsu ?
@@ -200,7 +202,6 @@ sub _parse_html {
     unless (defined $releasediv) {
         $releasediv = 0;
     }
-    $DB::single=1;
     # using a[1] because a[2] is missing on the first entry
     ($selected_release_distrov) = $nsu ?
         $xc->findvalue("x:h2/x:a[1]/\@name",$releasedivs[$releasediv]) :
@@ -308,7 +309,6 @@ sub parse_distro {
     if ($Opt{solve}) {
         require Statistics::Regression;
         $Opt{dumpvars} = "." unless defined $Opt{dumpvars};
-        $Opt{quiet} = 1 unless defined $Opt{quiet};
     }
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
@@ -331,7 +331,7 @@ sub parse_distro {
         close $fh or die "Could not close '$dumpfile': $!"
     }
     if ($Opt{solve}) {
-        solve(\%dumpvars);
+        solve(\%dumpvars,%Opt);
     }
 }
 
@@ -500,6 +500,7 @@ sub parse_report {
                 my(%kv) = /\G,?\s*([^=]+)=('[^']+?'|\S+)/gc;
                 while (my($k,$v) = each %kv) {
                     my $ck = "conf:$k";
+                    $ck =~ s/\s+$//;
                     $v =~ s/,$//;
                     if ($v =~ /^'(.*)'$/) {
                         $v = $1;
@@ -612,6 +613,12 @@ sub parse_report {
             $expecting_toolchain_soon=1;
         }
     }                           # LINE
+    if ($Opt{solve}) {
+        $extract{id} = $id;
+        my $data = $dumpvars->{"==DATA=="} ||= [];
+        push @$data, \%extract;
+    }
+    # ---- %extract finished ----
     my $diag = "";
     if (my $qr = $Opt{dumpvars}) {
         $qr = qr/$qr/;
@@ -624,11 +631,6 @@ sub parse_report {
     for my $want (@q) {
         my $have  = $extract{$want} || "";
         $diag .= " $want\[$have]";
-    }
-    if ($Opt{solve}) {
-        $extract{id} = $id;
-        my $data = $dumpvars->{"==DATA=="} ||= [];
-        push @$data, \%extract;
     }
     printf STDERR " %-4s %8d%s\n", $ok, $id, $diag unless $Opt{quiet};
     if ($Opt{raw}) {
@@ -664,49 +666,82 @@ sub parse_report {
 
 =head2 solve
 
-(TBD)
+Feeds a couple of potentially interesting data to
+Statistics::Regression and sorts the result by R^2 descending. Do not
+confuse this with a prove, rather take it as a useful hint. It can
+save you minutes of staring at data and provide a quick overview where
+one should look closer. Displays the N top candidates, where N
+defaults to 3 and can be set with the C<$Opt{solvetop}> variable.
 
 =cut
 {
     my %never_solve_on = map {($_ => 1)}
         (
+         "conf:ccflags",
+         "conf:config_args",
+         "conf:cppflags",
+         "conf:lddlflags",
+         "conf:uname",
          "env:PATH",
-         "meta:date",
+         "env:PERL5LIB",
+         "env:PERL5OPT",
+         'env:$^X',
+         'env:$EGID',
+         'env:$GID',
+         'env:$UID/$EUID',
+         'env:PERL5_CPANPLUS_IS_RUNNING',
+         'env:PERL5_CPAN_IS_RUNNING',
+         'env:PERL5_CPAN_IS_RUNNING_IN_RECURSION',
+        );
+    my %normalize =
+        (
+         id => sub { return shift },
+         'meta:date' => sub {
+             my($Y,$M,$D,$h,$m,$s) = shift =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)/;
+             Time::Local::timegm($s,$m,$h,$D,$M-1,$Y);
+         },
         );
 sub solve {
-    my($V) = @_;
+    my($V,%Opt) = @_;
     require Statistics::Regression;
     my @regression;
-    for my $variable (sort keys %$V) {
+  VAR: for my $variable (sort keys %$V) {
         next if $variable eq "==DATA==";
-        next if $never_solve_on{$variable};
+        if ($never_solve_on{$variable}){
+            warn "Skipping '$variable'\n" unless $Opt{quiet};
+            next VAR;
+        }
         my $value_distribution = $V->{$variable};
         my $keys = keys %$value_distribution;
         my @X = qw(const);
-        for my $value (sort keys %$value_distribution) {
-            my $pf = $value_distribution->{$value};
-            $pf->{PASS} ||= 0;
-            $pf->{FAIL} ||= 0;
-            push @X, "eq_$value";
-            if (
-                $pf->{PASS} xor $pf->{FAIL}
-               ) {
-                my $vl = 40;
-                substr($value,$vl) = "..." if length $value > 3+$vl;
-                my $poor_mans_freehand_estimation = 0;
-                if ($poor_mans_freehand_estimation) {
-                    warn sprintf
-                        (
-                         "%4d %4d %-23s | %s\n",
-                         $pf->{PASS},
-                         $pf->{FAIL},
-                         $variable,
-                         $value,
-                        );
+        if ($normalize{$variable}) {
+            push @X, "n_$variable";
+        } else {
+            for my $value (sort keys %$value_distribution) {
+                my $pf = $value_distribution->{$value};
+                $pf->{PASS} ||= 0;
+                $pf->{FAIL} ||= 0;
+                push @X, "eq_$value";
+                if (
+                    $pf->{PASS} xor $pf->{FAIL}
+                   ) {
+                    my $vl = 40;
+                    substr($value,$vl) = "..." if length $value > 3+$vl;
+                    my $poor_mans_freehand_estimation = 0;
+                    if ($poor_mans_freehand_estimation) {
+                        warn sprintf
+                            (
+                             "%4d %4d %-23s | %s\n",
+                             $pf->{PASS},
+                             $pf->{FAIL},
+                             $variable,
+                             $value,
+                            );
+                    }
                 }
             }
         }
-        warn "variable[$variable]keys[$keys]\n";
+        warn "variable[$variable]keys[$keys]X[@X]\n" unless $Opt{quiet};
         my $reg = Statistics::Regression->new($variable,\@X);
       RECORD: for my $rec (@{$V->{"==DATA=="}}) {
             my $y;
@@ -721,10 +756,16 @@ sub solve {
             @obs{@X} = (0) x @X;
             $obs{const} = 1;
             for my $x (@X) {
-                next unless $x =~ /^eq_(.+)/;
-                my $v = $1;
-                if (exists $rec->{$variable} && defined $rec->{$variable} && $rec->{$variable} eq $v) {
-                    $obs{$x} = 1;
+                if ($x =~ /^eq_(.+)/) {
+                    my $v = $1;
+                    if (exists $rec->{$variable}
+                        && defined $rec->{$variable}
+                        && $rec->{$variable} eq $v) {
+                        $obs{$x} = 1;
+                    }
+                } elsif ($x =~ /^n_(.+)/) {
+                    my $v = $1;
+                    $obs{$x} = $normalize{$v}->($rec->{$v});
                 }
             }
             $reg->include($y, \%obs);
@@ -737,8 +778,7 @@ sub solve {
             push @regression, $reg;
         }
     }
-    my $top = 5;
-    print "\n\n\n          top five candidates\n\n\n";
+    my $top = $Opt{solvetop} || 3;
     for my $reg (sort {$b->rsq <=> $a->rsq} @regression) {
         $reg->print;
         last if --$top <= 0;

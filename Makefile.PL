@@ -50,6 +50,7 @@ WriteMakefile
                      'Pod::Usage'                  => 0,
                      'Test::More'                  => 0,
                      'Test::Pod'                   => 0,
+                     'Time::Local'                 => 0,
                      'XML::LibXML'                 => 0,
                      'XML::LibXML::XPathContext'   => 0,
                      'YAML::Syck'                  => 0,

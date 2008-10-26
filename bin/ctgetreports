@@ -70,7 +70,7 @@ Example: C<--q mod:Clone --q meta:writer>
 
 =item B<--quiet!>
 
-Do while (not output the usual query lines per parsed report. Quiet
+Do not output the usual query lines per parsed report. Quiet
 overrules verbose.
 
 =item B<--raw!>
@@ -87,15 +87,14 @@ Example: C<--report 1238673>
 
 =item B<--solve!>
 
-Experimental function which tries to identify the best contenders for
-a blame using Statistics::Regression. Currently only limited to single
-variables and with simple heuristics. Implies C<--dumpvars=.> unless
-the caller sets dumpvars himself. And implies C<--quiet=1> unless the
-caller sets quiet to zero.
+Calls the solve function which tries to identify the best contenders
+for a blame using Statistics::Regression. Currently only limited to
+single variables and with simple heuristics. Implies C<--dumpvars=.>
+unless the caller sets dumpvars himself.
 
-The function prints at the moment to STDOUT the top 5 candidates
-according to R^2 with their regression analysis. The output could
-profit from better formatting.
+The function prints at the moment to STDOUT the top 3 (set with
+C<--solvetop>) candidates according to R^2 with their regression
+analysis.
 
 A few words of advise: do not take the results as a prove ever. Take
 them just as a hint where you can most probablt prove a causal
@@ -105,6 +104,11 @@ other direction as well.
 If you want to extend on that approach, I recommend you study the
 ctgetreports.out file where you find all the data you'd need and feed
 your assumptions to Statistics::Regression.
+
+=item B<--solvetop=i>
+
+The number of top candidates from the C<--solve> regression analysis
+to display.
 
 =item B<--vdistro=s>
 

@@ -35,6 +35,16 @@ my $plan;
     like($the_warning, qr/&main::/, "the ampersand is escaped");
 }
 
+{
+    BEGIN { $plan += 1 }
+    open my $fh, "-|", qq{"$^X" "-Ilib" "bin/ctgetreports" "--local" "--cachedir" "t/var" "--solve" "--quiet" "Scriptalicious" 2>&1} or die "could not fork: $!";
+    my @reg;
+    while (<$fh>) {
+        push @reg, $1 if /^Regression '(.+)'/;
+    }
+    is "@reg", "mod:Test::Harness id meta:date", "found the top 3 candidates";
+}
+
 unlink "ctgetreports.out";
 
 BEGIN {
