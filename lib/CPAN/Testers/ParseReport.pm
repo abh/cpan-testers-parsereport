@@ -692,13 +692,23 @@ defaults to 3 and can be set with the C<$Opt{solvetop}> variable.
          'env:PERL5_CPANPLUS_IS_RUNNING',
          'env:PERL5_CPAN_IS_RUNNING',
          'env:PERL5_CPAN_IS_RUNNING_IN_RECURSION',
+         'meta:ok',
         );
-    my %normalize =
+    my %normalize_numeric =
         (
          id => sub { return shift },
          'meta:date' => sub {
              my($Y,$M,$D,$h,$m,$s) = shift =~ /(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)/;
              Time::Local::timegm($s,$m,$h,$D,$M-1,$Y);
+         },
+        );
+    my %normalize_value =
+        (
+         'meta:perl' => sub {
+             my($perlatpatchlevel) = shift;
+             my $perl = $perlatpatchlevel;
+             $perl =~ s/\@.*//;
+             $perl;
          },
         );
 sub solve {
@@ -714,14 +724,24 @@ sub solve {
         my $value_distribution = $V->{$variable};
         my $keys = keys %$value_distribution;
         my @X = qw(const);
-        if ($normalize{$variable}) {
+        if ($normalize_numeric{$variable}) {
             push @X, "n_$variable";
         } else {
+            my %seen = ();
             for my $value (sort keys %$value_distribution) {
                 my $pf = $value_distribution->{$value};
                 $pf->{PASS} ||= 0;
                 $pf->{FAIL} ||= 0;
-                push @X, "eq_$value";
+                if ($pf->{PASS} || $pf->{FAIL}) {
+                    my $Xele = sprintf "eq_%s",
+                        (
+                         $normalize_value{$variable} ?
+                         $normalize_value{$variable}->($value) :
+                         $value
+                        );
+                    push @X, $Xele unless $seen{$Xele}++;
+
+                }
                 if (
                     $pf->{PASS} xor $pf->{FAIL}
                    ) {
@@ -742,6 +762,7 @@ sub solve {
             }
         }
         warn "variable[$variable]keys[$keys]X[@X]\n" unless $Opt{quiet};
+        next VAR unless @X > 1;
         my $reg = Statistics::Regression->new($variable,\@X);
       RECORD: for my $rec (@{$V->{"==DATA=="}}) {
             my $y;
@@ -757,22 +778,40 @@ sub solve {
             $obs{const} = 1;
             for my $x (@X) {
                 if ($x =~ /^eq_(.+)/) {
-                    my $v = $1;
+                    my $read_v = $1;
                     if (exists $rec->{$variable}
                         && defined $rec->{$variable}
-                        && $rec->{$variable} eq $v) {
-                        $obs{$x} = 1;
+                       ) {
+                        my $use_v = (
+                                     $normalize_value{$variable} ?
+                                     $normalize_value{$variable}->($rec->{$variable}) :
+                                     $rec->{$variable}
+                                    );
+                        if ($use_v eq $read_v) {
+                            $obs{$x} = 1;
+                        }
                     }
+                    warn "DEBUG: x[$x]obs[$obs{$x}]\n";
                 } elsif ($x =~ /^n_(.+)/) {
                     my $v = $1;
-                    $obs{$x} = $normalize{$v}->($rec->{$v});
+                    $obs{$x} = $normalize_numeric{$v}->($rec->{$v});
                 }
             }
             $reg->include($y, \%obs);
         }
         eval {$reg->standarderrors};
         if ($@) {
-            # require YAML::Syck; print STDERR "Line " . __LINE__ . ", File: " . __FILE__ . "\n" . YAML::Syck::Dump({error=>"could not determine standarderrors",variable=>$variable,k=>$reg->k, n=>$reg->n}); # XXX
+            if ($Opt{verbose}>=2) {
+                require YAML::Syck;
+                warn YAML::Syck::Dump
+                    ({error=>"could not determine standarderrors",
+                      variable=>$variable,
+                      k=>$reg->k,
+                      n=>$reg->n,
+                      X=>\@X,
+                      errorstr => $@,
+                     });
+            }
         } else {
             # $reg->print;
             push @regression, $reg;
