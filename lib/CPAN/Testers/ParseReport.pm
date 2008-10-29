@@ -25,7 +25,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-use version; our $VERSION = qv('0.0.14');
+use version; our $VERSION = qv('0.0.15');
 
 =head1 SYNOPSIS
 
@@ -791,7 +791,7 @@ sub solve {
                             $obs{$x} = 1;
                         }
                     }
-                    warn "DEBUG: x[$x]obs[$obs{$x}]\n";
+                    # warn "DEBUG: y[$y]x[$x]obs[$obs{$x}]\n";
                 } elsif ($x =~ /^n_(.+)/) {
                     my $v = $1;
                     $obs{$x} = $normalize_numeric{$v}->($rec->{$v});
