@@ -4,13 +4,13 @@ use ExtUtils::MakeMaker;
 $ExtUtils::MakeMaker::VERSION =~ s/_//g;
 my @sign = (MM->can("signature_target") ? (SIGN => 1) : ());
 my $version_diff = 0; # we'll have to die if this becomes true
-my $version_from = 'lib/CPAN/Testers/ParseReport.pm';
-my $mmgenereatedversionfrom = MM->parse_version($version_from);
+$::version_from = 'lib/CPAN/Testers/ParseReport.pm';
+my $mmgenereatedversionfrom = MM->parse_version($::version_from);
 if ($ARGV[0] && $ARGV[0] eq "--setversion") {
     die "Your perl is a bit dated[$]].\nDo not make a release with it\n" if $] < 5.008;
     warn "Your MakeMaker is a bit dated[$ExtUtils::MakeMaker::VERSION].\nYou should get a new one\n"
         if $ExtUtils::MakeMaker::VERSION < 6.4502;
-    eval {  require $version_from; }; die $@ if $@;
+    eval {  require $::version_from; }; die $@ if $@;
     my $makefile = "Makefile";
     unless (-f $makefile) {
         $makefile = "Makefile.old";
@@ -22,7 +22,7 @@ if ($ARGV[0] && $ARGV[0] eq "--setversion") {
     local $/;
     my ($have_version) = <$fh> =~ /^version\s+([\d\._]+)/m;
     close $fh or die "Could not close: $!";
-    my ($namespace) = $version_from;
+    my ($namespace) = $::version_from;
     $namespace =~ s|^lib/(.+)\.pm$|$1|;
     $namespace =~ s|/|::|g;
     eval qq{ if (\$$namespace\::VERSION != \$have_version) {
@@ -38,7 +38,7 @@ if ($ARGV[0] && $ARGV[0] eq "--setversion") {
 WriteMakefile
     (
      'NAME' => 'CPAN::Testers::ParseReport',
-     'VERSION_FROM' => $version_from,
+     'VERSION_FROM' => $::version_from,
      'PREREQ_PM' => {
                      'DateTime::Format::Strptime'  => 0,
                      'File::Path'                  => 0,
@@ -77,7 +77,7 @@ WriteMakefile
       (META_ADD => {
                     # write: git push git+ssh://repo.or.cz/srv/git/cpan-testers-parsereport.git master
                     repository => "git://repo.or.cz/cpan-testers-parsereport.git",
-                    provides => { "CPAN::Testers::ParseReport" => { version => $mmgenereatedversionfrom, file => $version_from }},
+                    provides => { "CPAN::Testers::ParseReport" => { version => $mmgenereatedversionfrom, file => $::version_from }},
                    }) : ()),
      @sign,
     );
@@ -97,6 +97,8 @@ sub postamble {
 # the subdirs on MY OWN BOX are allowed here (only used for make dist!)
 OKDIRS=DIST|bin|blib|cover_db\
        |lib|t
+
+Makefile: }.$::version_from.q{
 
 META.yml: metafile
 	$(CP) $(DISTVNAME)/META.yml  ./META.yml
