@@ -818,7 +818,9 @@ sub solve {
         }
     }
     my $top = $Opt{solvetop} || 3;
+    my $score = 0;
     for my $reg (sort {$b->rsq <=> $a->rsq} @regression) {
+        printf "(%d)\n", ++$score;
         $reg->print;
         last if --$top <= 0;
     }
