@@ -1,3 +1,9 @@
+2008-10-28  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.15
+
+	* provide a normalized meta:perl for --solve
+
 2008-10-26  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.14
