@@ -763,7 +763,11 @@ sub solve {
         }
         warn "variable[$variable]keys[$keys]X[@X]\n" unless $Opt{quiet};
         next VAR unless @X > 1;
-        my $reg = Statistics::Regression->new($variable,\@X);
+        my %regdata =
+            (
+             X => \@X,
+             data => [],
+            );
       RECORD: for my $rec (@{$V->{"==DATA=="}}) {
             my $y;
             if ($rec->{"meta:ok"} eq "PASS") {
@@ -774,6 +778,7 @@ sub solve {
                 next RECORD;
             }
             my %obs;
+            $obs{Y} = $y;
             @obs{@X} = (0) x @X;
             $obs{const} = 1;
             for my $x (@X) {
@@ -797,25 +802,9 @@ sub solve {
                     $obs{$x} = $normalize_numeric{$v}->($rec->{$v});
                 }
             }
-            $reg->include($y, \%obs);
+            push @{$regdata{data}}, \%obs;
         }
-        eval {$reg->standarderrors};
-        if ($@) {
-            if ($Opt{verbose}>=2) {
-                require YAML::Syck;
-                warn YAML::Syck::Dump
-                    ({error=>"could not determine standarderrors",
-                      variable=>$variable,
-                      k=>$reg->k,
-                      n=>$reg->n,
-                      X=>\@X,
-                      errorstr => $@,
-                     });
-            }
-        } else {
-            # $reg->print;
-            push @regression, $reg;
-        }
+        _run_regression ($variable, \%regdata, \@regression, \%Opt);
     }
     my $top = min ($Opt{solvetop} || 3, scalar @regression);
     my $score = 0;
@@ -831,6 +820,32 @@ sub solve {
         last if --$top <= 0;
     }
 }
+}
+
+sub _run_regression {
+    my($variable,$regdata,$regression,$opt) = @_;
+    my $reg = Statistics::Regression->new($variable,$regdata->{X});
+    for my $obs (@{$regdata->{data}}) {
+        my $y = delete $obs->{Y};
+        $reg->include($y, $obs);
+    }
+    eval {$reg->standarderrors};
+    if ($@) {
+        if ($opt->{verbose}>=2) {
+            require YAML::Syck;
+            warn YAML::Syck::Dump
+                ({error=>"could not determine standarderrors",
+                  variable=>$variable,
+                  k=>$reg->k,
+                  n=>$reg->n,
+                  X=>$regdata->{"X"},
+                  errorstr => $@,
+                 });
+        }
+    } else {
+        # $reg->print;
+        push @$regression, $reg;
+    }
 }
 
 =head1 AUTHOR
