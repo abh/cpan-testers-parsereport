@@ -1,3 +1,8 @@
+2008-10-30  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* Bug: FileArchiveIndexer produced not a singel result for --solve. In
+	such a case we must write a word about the nothingness. DONE
+
 2008-10-02  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* upload as bz2

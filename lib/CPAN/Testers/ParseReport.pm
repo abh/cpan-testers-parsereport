@@ -8,7 +8,7 @@ use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;
-use List::Util qw(max sum);
+use List::Util qw(max min sum);
 use Time::Local ();
 use XML::LibXML;
 use XML::LibXML::XPathContext;
@@ -817,8 +817,14 @@ sub solve {
             push @regression, $reg;
         }
     }
-    my $top = $Opt{solvetop} || 3;
+    my $top = min ($Opt{solvetop} || 3, scalar @regression);
     my $score = 0;
+    printf
+        (
+         "State after regression testing: %d results, showing top %d\n\n",
+         scalar @regression,
+         $top,
+        );
     for my $reg (sort {$b->rsq <=> $a->rsq} @regression) {
         printf "(%d)\n", ++$score;
         $reg->print;
