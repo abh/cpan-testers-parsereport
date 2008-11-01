@@ -1,3 +1,9 @@
+2008-11-01  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.16
+
+	* add protection against linear dependencies between columns
+
 2008-10-28  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.15

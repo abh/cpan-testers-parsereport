@@ -824,27 +824,34 @@ sub solve {
 
 sub _run_regression {
     my($variable,$regdata,$regression,$opt) = @_;
-    my $reg = Statistics::Regression->new($variable,$regdata->{X});
-    for my $obs (@{$regdata->{data}}) {
-        my $y = delete $obs->{Y};
-        $reg->include($y, $obs);
-    }
-    eval {$reg->standarderrors};
-    if ($@) {
-        if ($opt->{verbose}>=2) {
-            require YAML::Syck;
-            warn YAML::Syck::Dump
-                ({error=>"could not determine standarderrors",
-                  variable=>$variable,
-                  k=>$reg->k,
-                  n=>$reg->n,
-                  X=>$regdata->{"X"},
-                  errorstr => $@,
-                 });
+    my @X = @{$regdata->{X}};
+    while (@X > 1) {
+        my $reg = Statistics::Regression->new($variable,\@X);
+        for my $obs (@{$regdata->{data}}) {
+            my $y = delete $obs->{Y};
+            $reg->include($y, $obs);
+            $obs->{Y} = $y;
         }
-    } else {
-        # $reg->print;
-        push @$regression, $reg;
+        eval {$reg->standarderrors};
+        if ($@) {
+            if ($opt->{verbose} && $opt->{verbose}>=2) {
+                require YAML::Syck;
+                warn YAML::Syck::Dump
+                    ({error=>"could not determine standarderrors",
+                      variable=>$variable,
+                      k=>$reg->k,
+                      n=>$reg->n,
+                      X=>$regdata->{"X"},
+                      errorstr => $@,
+                     });
+            }
+            # reduce k in case that linear dependencies disturbed us
+            splice @X, 1, 1;
+        } else {
+            # $reg->print;
+            push @$regression, $reg;
+            return;
+        }
     }
 }
 
