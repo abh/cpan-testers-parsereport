@@ -832,7 +832,7 @@ sub _run_regression {
             $reg->include($y, $obs);
             $obs->{Y} = $y;
         }
-        eval {$reg->standarderrors};
+        eval {$reg->standarderrors;$reg->rsq;};
         if ($@) {
             if ($opt->{verbose} && $opt->{verbose}>=2) {
                 require YAML::Syck;
