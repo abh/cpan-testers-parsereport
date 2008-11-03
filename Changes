@@ -1,3 +1,13 @@
+2008-11-03  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.17
+
+	* typo fix # 40608
+
+	* bug fix # 40609: division by zero error in Statistics::Regression
+
+	* new option --ycb to specify a callback for calculating Y
+
 2008-11-01  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.16
