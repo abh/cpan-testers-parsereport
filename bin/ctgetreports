@@ -125,11 +125,20 @@ Feedback during download.
 
 Only used during --solve. Provides perl code to be used as a callback
 from the regression to determine the B<Y> of the regression equation.
-The callback function gets a record (hash) as the only argument and
+The callback function gets a record (hashref) as the only argument and
 must return a value or undefined. If it returns undefined, the record
 is skipped, otherwise this record is processed with the returned
 value. The callback is pure perl code without any surrounding sub
 declaration.
+
+The following example analyses diagnostic output from Acme-Study-Perl:
+
+  ctgetreports --q qr:"#(.*native big math float/int.*)" --solve \
+    --ycb 'my $rec = shift;
+           my $nbfi = $rec->{"qr:#(.*native big math float/int.*)"};
+          return undef unless defined $nbfi;
+          my $VAR1 = eval($nbfi);
+          return $VAR1->{">"}' Acme-Study-Perl
 
 =back
 
