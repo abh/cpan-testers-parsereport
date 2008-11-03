@@ -178,7 +178,6 @@ sub _parse_html {
             my($x) = $nsu ?
                 $xc->findvalue("x:h2/x:a[2]/\@name",$releasedivs[$i]) :
                     $releasedivs[$i]->findvalue("h2/a[2]/\@name");
-            $DB::single=1;
             if ($x) {
                 if ($x eq $Opt{vdistro}) {
                     $releasediv = $i;
@@ -715,6 +714,21 @@ sub solve {
     my($V,%Opt) = @_;
     require Statistics::Regression;
     my @regression;
+    my $ycb;
+    if (my $ycbbody = $Opt{ycb}) {
+        $ycb = eval('sub {'.$ycbbody.'}');
+        die if $@;
+    } else {
+        $ycb = sub {
+            my $rec = shift; my $y;
+            if ($rec->{"meta:ok"} eq "PASS") {
+                $y = 1;
+            } elsif ($rec->{"meta:ok"} eq "FAIL") {
+                $y = 0;
+            }
+            return $y
+        }
+    }
   VAR: for my $variable (sort keys %$V) {
         next if $variable eq "==DATA==";
         if ($never_solve_on{$variable}){
@@ -769,14 +783,8 @@ sub solve {
              data => [],
             );
       RECORD: for my $rec (@{$V->{"==DATA=="}}) {
-            my $y;
-            if ($rec->{"meta:ok"} eq "PASS") {
-                $y = 1;
-            } elsif ($rec->{"meta:ok"} eq "FAIL") {
-                $y = 0;
-            } else {
-                next RECORD;
-            }
+            my $y = $ycb->($rec);
+            next RECORD unless defined $y;
             my %obs;
             $obs{Y} = $y;
             @obs{@X} = (0) x @X;
