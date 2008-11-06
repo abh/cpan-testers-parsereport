@@ -1,3 +1,10 @@
+2008-11-06  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.18
+
+	* switch to Net::NNTP instead of HTTP for the reports. HTTP can be
+	switched on with --transport=http
+
 2008-11-03  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.17

@@ -9,11 +9,13 @@ use File::Path qw(mkpath);
 use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;
 use List::Util qw(max min sum);
+use Net::NNTP ();
 use Time::Local ();
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 
 our $default_ctformat = "html";
+our $default_transport = "nntp";
 our $default_cturl = "http://www.cpantesters.org/show";
 our $Signal = 0;
 
@@ -25,7 +27,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-use version; our $VERSION = qv('0.0.17');
+use version; our $VERSION = qv('0.0.18');
 
 =head1 SYNOPSIS
 
@@ -73,6 +75,16 @@ $dumpvar is a hashreference that gets filled with data.
             );
         $ua->parse_head(0);
         $ua;
+    }
+}
+
+{
+    my $nntp;
+    sub _nntp {
+        return $nntp if $nntp;
+        $nntp = Net::NNTP->new("nntp.perl.org");
+        $nntp->group("perl.cpan.testers");
+        return $nntp;
     }
 }
 
@@ -278,21 +290,30 @@ sub parse_single_report {
     } else {
         if (! -e $target) {
             print STDERR "Fetching $target..." if $Opt{verbose} && !$Opt{quiet};
-            my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
-            if ($resp->is_success) {
-                if ($Opt{verbose}) {
-                    my(@stat) = stat $target;
-                    my $timestamp = gmtime $stat[9];
-                    print STDERR "(timestamp $timestamp GMT)\n" unless $Opt{quiet};
-                    if ($Opt{verbose} > 1) {
-                        print STDERR $resp->headers->as_string unless $Opt{quiet};
+            $Opt{transport} ||= $default_transport;
+            if ($Opt{transport} eq "nntp") {
+                my $article = _nntp->article($id);
+                open my $fh, ">", $target or die "Could not open >$target: $!";
+                print $fh @$article;
+            } elsif ($Opt{transport} eq "http") {
+                my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
+                if ($resp->is_success) {
+                    if ($Opt{verbose}) {
+                        my(@stat) = stat $target;
+                        my $timestamp = gmtime $stat[9];
+                        print STDERR "(timestamp $timestamp GMT)\n" unless $Opt{quiet};
+                        if ($Opt{verbose} > 1) {
+                            print STDERR $resp->headers->as_string unless $Opt{quiet};
+                        }
                     }
+                    my $headers = "$target.headers";
+                    open my $fh, ">", $headers or die;
+                    print $fh $resp->headers->as_string;
+                } else {
+                    die $resp->status_line;
                 }
-                my $headers = "$target.headers";
-                open my $fh, ">", $headers or die;
-                print $fh $resp->headers->as_string;
             } else {
-                die $resp->status_line;
+                die "Illegal value for --transport: '$Opt{transport}'";
             }
         }
     }
@@ -344,6 +365,9 @@ Note: this parsing is a bit dirty but as it seems good enough I'm not
 inclined to change it. We parse HTML with a regexps only, no HTML
 parser working, only the entities are decoded.
 
+Update around version 0.0.17: switching to nntp now but keeping the
+parser for HTML around to read old local copies.
+
 =cut
 sub parse_report {
     my($target,$dumpvars,%Opt) = @_;
@@ -353,12 +377,14 @@ sub parse_report {
 
     my(%extract);
 
-    my $report;
+    my($report,$isHTML);
     my @qr = map /^qr:(.+)/, @{$Opt{q}};
     if ($Opt{raw} || @qr) {
         open my $fh, $target or die "Could not open '$target': $!";
         local $/;
-        $report = decode_entities <$fh>;
+        my $raw_report = <$fh>;
+        $isHTML = $raw_report =~ /^</;
+        $report = $isHTML ? decode_entities($raw_report) : $raw_report;
         close $fh;
         for my $qr (@qr) {
             my $cqr = eval "qr{$qr}";
@@ -392,8 +418,9 @@ sub parse_report {
 
     my $current_headline;
     my @previous_line = ""; # so we can neutralize line breaks
-  LINE: while (<$fh>) {
-        next unless /<title>(\S+)\s+(\S+)/;
+ LINE: while (<$fh>) {
+        $isHTML = /^</ if ! defined $isHTML && $. == 1;
+        next LINE unless ($isHTML ? m/<title>(\S+)\s+(\S+)/ : m/^Subject: (\S+)\s+(\S+)/);
         $ok = $1;
         $about = $2;
         $extract{"meta:ok"}    = $ok;
@@ -401,7 +428,7 @@ sub parse_report {
         last;
     }
     seek $fh, 0, 0;
-  LINE: while (<$fh>) {
+ LINE: while (<$fh>) {
         s/\r?\n\z//;
         while (/!$/) {
             my $followupline = <$fh>;
@@ -409,7 +436,7 @@ sub parse_report {
             $_ .= $followupline;
             s/\r?\n\z//;
         }
-        $_ = decode_entities $_;
+        $_ = decode_entities($_) if $isHTML;
         if (/^--------/ && $previous_line[-2] && $previous_line[-2] =~ /^--------/) {
             $current_headline = $previous_line[-1];
             if ($current_headline =~ /PROGRAM OUTPUT/) {
@@ -449,21 +476,37 @@ sub parse_report {
         }
         unless ($extract{"meta:from"}) {
             if (0) {
-            } elsif (m|<div class="h_name">From:</div> <b>(.+?)</b><br/>|) {
+            } elsif ($isHTML ?
+                     m|<div class="h_name">From:</div> <b>(.+?)</b><br/>| :
+                     m|^From: (.+)|
+                    ) {
                 $extract{"meta:from"} = $1;
             }
             $extract{"meta:from"} =~ s/\.$// if $extract{"meta:from"};
         }
         unless ($extract{"meta:date"}) {
             if (0) {
-            } elsif (m|<div class="h_name">Date:</div> (.+?)<br/>|) {
+            } elsif ($isHTML ?
+                     m|<div class="h_name">Date:</div> (.+?)<br/>| :
+                     m|^Date: (.+)|
+                    ) {
                 my $date = $1;
-                my $p = DateTime::Format::Strptime->new(
-                                                        locale => "en",
-                                                        time_zone => "UTC",
-                                                        # April 13, 2005 23:50
-                                                        pattern => "%b %d, %Y %R",
-                                                       );
+                my $p;
+                if ($isHTML) {
+                    $p = DateTime::Format::Strptime->new(
+                                                         locale => "en",
+                                                         time_zone => "UTC",
+                                                         # April 13, 2005 23:50
+                                                         pattern => "%b %d, %Y %R",
+                                                        );
+                } else {
+                    $p = DateTime::Format::Strptime->new(
+                                                         locale => "en",
+                                                         time_zone => "UTC",
+                                                         # Sun, 28 Sep 2008 12:23:12 +0100
+                                                         pattern => "%a, %d %b %Y %T %z",
+                                                        );
+                }
                 my $dt = $p->parse_datetime($date);
                 $extract{"meta:date"} = $dt->datetime;
             }
@@ -494,6 +537,7 @@ sub parse_report {
             my %conf_vars = map {($_ => 1)} grep { /^conf:/ } @q;
 
             if (/^\s*$/ || m|</pre>|) {
+                # if not html, we have reached the end now
                 $in_summary = 0;
             } else {
                 my(%kv) = /\G,?\s*([^=]+)=('[^']+?'|\S+)/gc;
@@ -720,14 +764,15 @@ sub solve {
         die if $@;
     } else {
         $ycb = sub {
-            my $rec = shift; my $y;
+            my $rec = shift;
+            my $y;
             if ($rec->{"meta:ok"} eq "PASS") {
                 $y = 1;
             } elsif ($rec->{"meta:ok"} eq "FAIL") {
                 $y = 0;
             }
             return $y
-        }
+        };
     }
   VAR: for my $variable (sort keys %$V) {
         next if $variable eq "==DATA==";
@@ -840,7 +885,7 @@ sub _run_regression {
             $reg->include($y, $obs);
             $obs->{Y} = $y;
         }
-        eval {$reg->standarderrors;$reg->rsq;};
+        eval {$reg->theta;$reg->standarderrors;$reg->rsq;};
         if ($@) {
             if ($opt->{verbose} && $opt->{verbose}>=2) {
                 require YAML::Syck;

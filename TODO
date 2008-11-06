@@ -1,3 +1,11 @@
+2008-11-06  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* perl -MNet::NNTP -e '$nntp=Net::NNTP->new("nntp.perl.org"); $nntp->group("perl.cpan.testers"); warn "@{$nntp->head(shift)}"' 123456
+
+	above was posted by Slaven to cpantesters-discuss -- a late thanks, Slaven!
+
+	 PASS  2323945 meta:perl[5.8.4] conf:archname[i386-netbsd-thread-multi-64int] conf:usethreads[define] conf:optimize[-O] meta:writer[CPANPLUS::Dist::YACSmoke 0.10] meta:from[chris]
+
 2008-10-30  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* Bug: FileArchiveIndexer produced not a singel result for --solve. In

@@ -110,6 +110,11 @@ your assumptions to Statistics::Regression.
 The number of top candidates from the C<--solve> regression analysis
 to display.
 
+=item B<--transport=s>
+
+Specifies transport to get the reports. C<nntp> uses Net::NNTP,
+C<http> uses LWP::UserAgent. Defaults to nntp.
+
 =item B<--vdistro=s>
 
 Versioned distro. Needed if we do not want the most recent. Makes no

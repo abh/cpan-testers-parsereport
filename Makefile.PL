@@ -47,6 +47,7 @@ WriteMakefile
                      'IO::Prompt'                  => 0,
                      'LWP::UserAgent'              => 0,
                      'List::Util'                  => 0,
+                     'Net::NNTP'                   => 0,
                      'Pod::Usage'                  => 0,
                      'Statistics::Regression'      => 0,
                      'Test::More'                  => 0,
