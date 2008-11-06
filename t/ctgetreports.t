@@ -9,6 +9,20 @@ use YAML::Syck;
 my $plan;
 
 {
+    BEGIN { $plan += 1 }
+    open my $fh, "<", qq{t/var/nntp-testers/1581994} or die "could not open: $!";
+    local $/;
+    my $article = <$fh>;
+    close $fh;
+    my $dump = {};
+    $DB::single++;
+    CPAN::Testers::ParseReport::parse_report(1234567, $dump, article => $article, solve => 1, quiet => 1);
+    $DB::single++;
+    my $keys = keys %{$dump->{"==DATA=="}[0]};
+    ok($keys >= 39, "found at least 39, actually [$keys] keys");
+}
+
+{
     BEGIN {
         $plan += 5;
     }
@@ -26,7 +40,7 @@ my $plan;
           );
     my $Y = YAML::Syck::LoadFile("ctgetreports.out");
     my $count = sum map {values %{$Y->{"meta:from"}{$_}}} keys %{$Y->{"meta:from"}};
-    is($count, 130, "found 130 report via meta:from");
+    is($count, 130, "found $count==130 reports via meta:from");
     is($Y->{"meta:ok"}{PASS}{PASS}, 79, "found 79 PASS");
     ok(!$Y->{"env:alignbytes"}, "there is no such thing as an environment alignbytes");
     my $undefined = $Y->{'qr:(Undefined.*)'};

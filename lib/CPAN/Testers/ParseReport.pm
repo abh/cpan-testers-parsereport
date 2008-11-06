@@ -362,11 +362,19 @@ a hashref which gets filled. %Opt are the options as described in the
 C<ctgetreports> manpage.
 
 Note: this parsing is a bit dirty but as it seems good enough I'm not
-inclined to change it. We parse HTML with a regexps only, no HTML
-parser working, only the entities are decoded.
+inclined to change it. We parse HTML with regexps only, not an HTML
+parser. Only the entities are decoded.
 
 Update around version 0.0.17: switching to nntp now but keeping the
 parser for HTML around to read old local copies.
+
+Update around 0.0.18: In %Options you can use
+
+    article => $some_full_article_as_scalar
+
+to use this function to parse one full article as text. When this is
+given, the argument $target is not read, but its basename is taken to
+be the id of the article. (OMG, hackers!)
 
 =cut
 sub parse_report {
@@ -378,14 +386,20 @@ sub parse_report {
     my(%extract);
 
     my($report,$isHTML);
-    my @qr = map /^qr:(.+)/, @{$Opt{q}};
-    if ($Opt{raw} || @qr) {
+    if ($report = $Opt{article}) {
+        $isHTML = $report =~ /^</;
+        undef $target;
+    }
+    if ($target) {
         open my $fh, $target or die "Could not open '$target': $!";
         local $/;
         my $raw_report = <$fh>;
         $isHTML = $raw_report =~ /^</;
         $report = $isHTML ? decode_entities($raw_report) : $raw_report;
         close $fh;
+    }
+    my @qr = map /^qr:(.+)/, @{$Opt{q}};
+    if ($Opt{raw} || @qr) {
         for my $qr (@qr) {
             my $cqr = eval "qr{$qr}";
             die "Could not compile regular expression '$qr': $@" if $@;
@@ -404,8 +418,6 @@ sub parse_report {
         }
     }
 
-    open my $fh, $target or die "Could not open '$target': $!";
-
     my $report_writer;
     my $moduleunpack = {};
     my $expect_prereq = 0;
@@ -418,8 +430,8 @@ sub parse_report {
 
     my $current_headline;
     my @previous_line = ""; # so we can neutralize line breaks
- LINE: while (<$fh>) {
-        $isHTML = /^</ if ! defined $isHTML && $. == 1;
+    my @rlines = split /\r?\n/, $report;
+ LINE: for (@rlines) {
         next LINE unless ($isHTML ? m/<title>(\S+)\s+(\S+)/ : m/^Subject: (\S+)\s+(\S+)/);
         $ok = $1;
         $about = $2;
@@ -427,16 +439,13 @@ sub parse_report {
         $extract{"meta:about"} = $about;
         last;
     }
-    seek $fh, 0, 0;
- LINE: while (<$fh>) {
-        s/\r?\n\z//;
+ LINE: while (@rlines) {
+        $_ = shift @rlines;
         while (/!$/) {
-            my $followupline = <$fh>;
+            my $followupline = shift @rlines;
             $followupline =~ s/^\s+//; # remo leading space
             $_ .= $followupline;
-            s/\r?\n\z//;
         }
-        $_ = decode_entities($_) if $isHTML;
         if (/^--------/ && $previous_line[-2] && $previous_line[-2] =~ /^--------/) {
             $current_headline = $previous_line[-1];
             if ($current_headline =~ /PROGRAM OUTPUT/) {
