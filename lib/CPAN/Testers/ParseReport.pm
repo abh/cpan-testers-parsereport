@@ -49,15 +49,15 @@ the functions unaltered.
 
 =head1 FUNCTIONS
 
-=head2 parse_distro($distro,$options)
+=head2 parse_distro($distro,%options)
 
 reads the cpantesters HTML page or the YAML file for the distro and
 loops through the reports for the specified or most recent version of
 that distro found in these data.
 
-=head2 parse_single_report($report,$dumpvars,$options)
+=head2 parse_single_report($report,$dumpvars,%options)
 
-mirrors and reads this report. $report is of the for
+mirrors and reads this report. $report is of the form
 
   { id => number }
 
