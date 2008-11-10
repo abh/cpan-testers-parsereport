@@ -1,3 +1,13 @@
+2008-11-10  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.19
+
+	* introduce a backdoor to feed an arbitrary article as argument to the
+	parser.
+
+	* address #40812: with NNTP, when the date format doesn't match
+	expectations, use DateParse compatible parser.
+
 2008-11-06  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.18
