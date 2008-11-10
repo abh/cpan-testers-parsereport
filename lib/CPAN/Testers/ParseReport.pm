@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use DateTime::Format::Strptime;
+use DateTime::Format::DateParse;
 use File::Basename qw(basename);
 use File::Path qw(mkpath);
 use HTML::Entities qw(decode_entities);
@@ -500,23 +501,21 @@ sub parse_report {
                      m|^Date: (.+)|
                     ) {
                 my $date = $1;
-                my $p;
+                my($dt);
                 if ($isHTML) {
+                    my $p;
                     $p = DateTime::Format::Strptime->new(
                                                          locale => "en",
                                                          time_zone => "UTC",
                                                          # April 13, 2005 23:50
                                                          pattern => "%b %d, %Y %R",
                                                         );
+                    $dt = $p->parse_datetime($date);
                 } else {
-                    $p = DateTime::Format::Strptime->new(
-                                                         locale => "en",
-                                                         time_zone => "UTC",
-                                                         # Sun, 28 Sep 2008 12:23:12 +0100
-                                                         pattern => "%a, %d %b %Y %T %z",
-                                                        );
+                    # Sun, 28 Sep 2008 12:23:12 +0100 # but was not consistent
+                    # pattern => "%a, %d %b %Y %T %z",
+                    $dt = DateTime::Format::DateParse->parse_datetime($date);
                 }
-                my $dt = $p->parse_datetime($date);
                 $extract{"meta:date"} = $dt->datetime;
             }
             $extract{"meta:date"} =~ s/\.$// if $extract{"meta:date"};

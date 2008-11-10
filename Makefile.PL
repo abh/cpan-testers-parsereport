@@ -41,6 +41,7 @@ WriteMakefile
      'VERSION_FROM' => $::version_from,
      'PREREQ_PM' => {
                      'DateTime::Format::Strptime'  => 0,
+                     'DateTime::Format::DateParse' => 0,
                      'File::Path'                  => 0,
                      'Getopt::Long'                => 0,
                      'HTML::Entities'              => 0,
