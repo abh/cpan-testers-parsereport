@@ -33,7 +33,7 @@ reconstruction.
 
 Base URL of the cpantesters website. Defaults to
 C<http://www.cpantesters.org/show> but sometimes it is interesting to set
-it to the old URL, C<>http://cpantesters.perl.org/show> to diagnose bugs
+it to the old URL, C<http://cpantesters.perl.org/show> to diagnose bugs
 or whatever.
 
 =item B<--dumpfile=s>

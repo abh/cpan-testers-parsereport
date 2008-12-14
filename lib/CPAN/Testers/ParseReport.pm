@@ -28,7 +28,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-use version; our $VERSION = qv('0.0.19');
+use version; our $VERSION = qv('0.0.20');
 
 =head1 SYNOPSIS
 
@@ -285,8 +285,7 @@ sub parse_single_report {
     my $target = "$nnt_dir/$id";
     if ($Opt{local}) {
         unless (-e $target) {
-            warn "Warning: No local file '$target' found, skipping\n";
-            return;
+            die {severity=>0,text=>"Warning: No local file '$target' found, skipping\n"};
         }
     } else {
         if (! -e $target) {
@@ -294,7 +293,10 @@ sub parse_single_report {
             $Opt{transport} ||= $default_transport;
             if ($Opt{transport} eq "nntp") {
                 my $article = _nntp->article($id);
-                open my $fh, ">", $target or die "Could not open >$target: $!";
+                unless ($article) {
+                    die {severity=>0,text=>"NNTP-Server does did not return an article for id[$id]"};
+                }
+                open my $fh, ">", $target or die {severity=>1,text=>"Could not open >$target: $!"};
                 print $fh @$article;
             } elsif ($Opt{transport} eq "http") {
                 my $resp = _ua->mirror("http://www.nntp.perl.org/group/perl.cpan.testers/$id",$target);
@@ -308,13 +310,14 @@ sub parse_single_report {
                         }
                     }
                     my $headers = "$target.headers";
-                    open my $fh, ">", $headers or die;
+                    open my $fh, ">", $headers or die {severity=>1,text=>"Could not open >$headers: $!"};
                     print $fh $resp->headers->as_string;
                 } else {
-                    die $resp->status_line;
+                    die {severity=>0,
+                             text=>sprintf "HTTP Server Error[%s] for id[%s]", $resp->status_line, $id};
                 }
             } else {
-                die "Illegal value for --transport: '$Opt{transport}'";
+                die {severity=>1,text=>"Illegal value for --transport: '$Opt{transport}'"};
             }
         }
     }
@@ -341,7 +344,18 @@ sub parse_distro {
     }
     return unless $reports;
     for my $report (@$reports) {
-        parse_single_report($report, \%dumpvars, %Opt);
+        eval {parse_single_report($report, \%dumpvars, %Opt)};
+        if ($@) {
+            if (ref $@) {
+                if ($@->{severity}) {
+                    die $@->{text};
+                } else {
+                    warn $@->{text};
+                }
+            } else {
+                die $@;
+            }
+        }
         last if $Signal;
     }
     if ($Opt{dumpvars}) {

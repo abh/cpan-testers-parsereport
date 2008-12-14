@@ -1,3 +1,24 @@
+2008-12-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* report bug in nntp server:
+
+	  DB<147> x $N = Net::NNTP->new("nntp.perl.org")
+0  Net::NNTP=GLOB(0x9307f7c)
+   -> *Symbol::GEN7
+         FileHandle({*Symbol::GEN7}) => fileno(8)
+  DB<148> x $N->group("perl.cpan.testers")
+0  2829109
+1  1
+2  2829109
+3  'perl.cpan.testers'
+  DB<149> x map { ref $N->head($_) } 1000000,2000000,2500000,2599999,2600000
+0  'ARRAY'
+1  ''
+2  ''
+3  ''
+4  'ARRAY'
+
+
 2008-11-06  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* perl -MNet::NNTP -e '$nntp=Net::NNTP->new("nntp.perl.org"); $nntp->group("perl.cpan.testers"); warn "@{$nntp->head(shift)}"' 123456

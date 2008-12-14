@@ -1,3 +1,9 @@
+2008-12-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.20
+
+	* catch errors from HTTP and NNTP server.
+
 2008-11-10  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.19
