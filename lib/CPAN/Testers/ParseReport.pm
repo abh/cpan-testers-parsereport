@@ -294,7 +294,7 @@ sub parse_single_report {
             if ($Opt{transport} eq "nntp") {
                 my $article = _nntp->article($id);
                 unless ($article) {
-                    die {severity=>0,text=>"NNTP-Server does did not return an article for id[$id]"};
+                    die {severity=>0,text=>"NNTP-Server did not return an article for id[$id]"};
                 }
                 open my $fh, ">", $target or die {severity=>1,text=>"Could not open >$target: $!"};
                 print $fh @$article;
