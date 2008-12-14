@@ -882,6 +882,8 @@ sub solve {
         _run_regression ($variable, \%regdata, \@regression, \%Opt);
     }
     my $top = min ($Opt{solvetop} || 3, scalar @regression);
+    my $max_rsq = sum map {1==$_->rsq ? 1 : 0} @regression;
+    $top = $max_rsq if $max_rsq > $top;
     my $score = 0;
     printf
         (
