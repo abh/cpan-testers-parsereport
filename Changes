@@ -1,3 +1,11 @@
+2008-12-15  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.21
+
+	* solve switch: secondary sort order K ascending (suggested by Slaven)
+
+	* solvetop switch: overrule it when there are more results with R^2==1.0
+
 2008-12-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.20
