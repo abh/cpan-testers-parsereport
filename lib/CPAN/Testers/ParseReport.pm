@@ -891,7 +891,11 @@ sub solve {
          scalar @regression,
          $top,
         );
-    for my $reg (sort {$b->rsq <=> $a->rsq} @regression) {
+    for my $reg (sort {
+                     $b->rsq <=> $a->rsq
+                     ||
+                     $a->k <=> $b->k
+                 } @regression) {
         printf "(%d)\n", ++$score;
         $reg->print;
         last if --$top <= 0;
