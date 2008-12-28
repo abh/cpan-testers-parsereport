@@ -18,7 +18,7 @@ t/ctgetreports.t
 t/pod-coverage.t
 t/pod.t
 t/run.t
-t/var/cpantesters-show/Scriptalicious.html
+t/var/cpantesters-show/Scriptalicious.yaml
 t/var/nntp-testers/1423910
 t/var/nntp-testers/1423911
 t/var/nntp-testers/1423912

@@ -1,3 +1,10 @@
+2008-12-29  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.22
+
+	* dropped support for ctformat=html because cpantesters site is a moving
+	target.
+
 2008-12-15  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.21

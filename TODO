@@ -1,3 +1,21 @@
+2008-12-18  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* collect oneliners. here we filter the testreports from
+	ctgetreports.out after APC@34000, only 5.10 and 5.11 and only look at
+	ok, perl, from.
+
+perl -e '
+use strict; use YAML::Syck;
+my $y = YAML::Syck::LoadFile "ctgetreports.out";
+for my $r (@{$y->{"==DATA=="}}){
+  next unless $r->{"meta:perl"} =~ /^(.+)\@(\d+)/;
+  my($b,$n) = ($1,$2);
+  next if $n < 34000 || $b !~ /\.1/;
+  print join "  ", @$r{"id","meta:ok","meta:perl","meta:from"}, "\n";
+}          
+' | sort -n
+
+
 2008-12-14  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* report bug in nntp server:

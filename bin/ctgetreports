@@ -25,9 +25,9 @@ Directory to keep mirrored data in. Defaults to C<$HOME/var/cpantesters>.
 =item B<--ctformat=s>
 
 Format of the cpan-testers file that should be downloaded. Available
-options are C<html> and C<yaml>. Default should be html but is
-temporarily switched to yaml because the cpantesters site is under
-reconstruction.
+options were originally C<html> and C<yaml>. With major construction
+works going on the HTML on cpantesters is now unsupported for the time
+being.
 
 =item B<--cturl=s>
 

@@ -15,7 +15,7 @@ use Time::Local ();
 use XML::LibXML;
 use XML::LibXML::XPathContext;
 
-our $default_ctformat = "html";
+our $default_ctformat = "yaml";
 our $default_transport = "nntp";
 our $default_cturl = "http://www.cpantesters.org/show";
 our $Signal = 0;
@@ -28,7 +28,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-use version; our $VERSION = qv('0.0.21');
+use version; our $VERSION = qv('0.0.22');
 
 =head1 SYNOPSIS
 
