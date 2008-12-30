@@ -530,6 +530,10 @@ sub parse_report {
                     # pattern => "%a, %d %b %Y %T %z",
                     $dt = DateTime::Format::DateParse->parse_datetime($date);
                 }
+                unless ($dt) {
+                    warn "Could not parse date[$date], setting to epoch 0";
+                    $dt = DateTime->from_epoch( epoch => 0 );
+                }
                 $extract{"meta:date"} = $dt->datetime;
             }
             $extract{"meta:date"} =~ s/\.$// if $extract{"meta:date"};
