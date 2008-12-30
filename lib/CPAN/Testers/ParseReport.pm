@@ -909,7 +909,10 @@ sub solve {
                      $a->k <=> $b->k
                  } @regression) {
         printf "(%d)\n", ++$score;
-        $reg->print;
+        eval { $reg->print; };
+        if ($@) {
+            printf "\n\nOops, Statistics::Regression died during ->print() with error message[$@]\n\n";
+        }
         last if --$top <= 0;
     }
 }
@@ -925,12 +928,15 @@ sub _run_regression {
             $reg->include($y, $obs);
             $obs->{Y} = $y;
         }
-        eval {$reg->theta;$reg->standarderrors;$reg->rsq;};
+        eval {$reg->theta;
+              my @e = $reg->standarderrors;
+              die "found standarderrors == 0" if grep { 0 == $_ } @e;
+              $reg->rsq;};
         if ($@) {
             if ($opt->{verbose} && $opt->{verbose}>=2) {
                 require YAML::Syck;
                 warn YAML::Syck::Dump
-                    ({error=>"could not determine standarderrors",
+                    ({error=>"could not determine some regression parameters",
                       variable=>$variable,
                       k=>$reg->k,
                       n=>$reg->n,
