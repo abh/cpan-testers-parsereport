@@ -1,3 +1,18 @@
+2008-12-30  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.0.23
+
+	* do not die when we cannot parse a date in an nntp article, for example
+	550894.
+
+	* if -solve is given, always provide a variable C<conf:archname+osvers>
+	that concatenates C<archname> and C<osvers> because the latter alone is
+	a pointless variable.
+
+	* do not die if Statistics::Regression::print() dies. Before it may come
+	to that introduce additional caution, checking the return value of
+	standarderrors().
+
 2008-12-29  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.22
