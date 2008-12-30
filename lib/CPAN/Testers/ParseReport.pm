@@ -684,6 +684,9 @@ sub parse_report {
     }                           # LINE
     if ($Opt{solve}) {
         $extract{id} = $id;
+        if ($extract{"conf:osvers"} && $extract{"conf:archname"}) {
+            $extract{"conf:archame+osvers"} = join " ", @extract{"conf:archname","conf:osvers"};
+        }
         my $data = $dumpvars->{"==DATA=="} ||= [];
         push @$data, \%extract;
     }
@@ -741,6 +744,11 @@ confuse this with a prove, rather take it as a useful hint. It can
 save you minutes of staring at data and provide a quick overview where
 one should look closer. Displays the N top candidates, where N
 defaults to 3 and can be set with the C<$Opt{solvetop}> variable.
+Regressions results with an R^2 of 1.00 are displayed in any case.
+
+The function is called when the option C<-solve> is give on the
+commandline. Several extra config variables are calculated, see source
+code for details.
 
 =cut
 {
