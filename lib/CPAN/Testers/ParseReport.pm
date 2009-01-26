@@ -642,6 +642,9 @@ sub parse_report {
                 if ($module) {
                     $v =~ s/^\s+//;
                     $v =~ s/\s+$//;
+                    if ($v eq "Have") {
+                        next LINE;
+                    }
                     $extract{"mod:$module"} = $v;
                 }
             }
