@@ -624,6 +624,8 @@ sub parse_report {
                         $moduleunpack = {};
                         $expect_prereq = 0;
                         next LINE;
+                    } elsif ($v =~ /\s/) {
+                        ($module,$v) = split " ", $_;
                     }
                 } elsif ($moduleunpack->{type} == 3) {
                     (my $leader,$module,$v) = eval { unpack $moduleunpack->{tpl}, $_; };
