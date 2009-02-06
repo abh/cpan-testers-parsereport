@@ -5,6 +5,9 @@
 	* discontinued the support for more than one distro on the commandline;
 	it seemed unnneeded and confusing
 
+	* allow a versioned distro name as argument, obsoletes the --vdistro
+	option.
+
 2008-12-30  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.23

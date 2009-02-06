@@ -334,6 +334,10 @@ sub parse_distro {
         require Statistics::Regression;
         $Opt{dumpvars} = "." unless defined $Opt{dumpvars};
     }
+    if (!$Opt{vdistro} && $distro =~ /^(.+)-(?i:v?\d+)(?:\.\d+)*$/) {
+        $Opt{vdistro} = $distro;
+        $distro = $1;
+    }
     my $ctarget = _download_overview($cts_dir, $distro, %Opt);
     my $reports;
     $Opt{ctformat} ||= $default_ctformat;
