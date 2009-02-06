@@ -1,3 +1,10 @@
+2009-02-06  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.1.0
+
+	* discontinued the support for more than one distro on the commandline;
+	it seemed unnneeded and confusing
+
 2008-12-30  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.0.23

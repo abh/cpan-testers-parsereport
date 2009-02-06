@@ -6,7 +6,7 @@ ctgetreports - Quickly fetch cpantesters results with all reports
 
 =head1 SYNOPSIS
 
-  ctgetreports [options] distroname ...
+  ctgetreports [options] distroname
   ctgetreports [options] --report number ...
   ctgetreports -h
 
@@ -117,8 +117,7 @@ C<http> uses LWP::UserAgent. Defaults to nntp.
 
 =item B<--vdistro=s>
 
-Versioned distro. Needed if we do not want the most recent. Makes no
-sense if there is more than one argument on the command line.
+Versioned distro. Needed if we do not want the most recent.
 
 Example: C<--vdistro IPC-Run-0.80>
 
@@ -264,7 +263,7 @@ if ($Opt{report}) {
         pod2usage(2);
     }
 } else {
-    if (! @ARGV) {
+    if (1 != @ARGV) {
         pod2usage(2);
     }
 }
@@ -290,10 +289,7 @@ if (my $reports = delete $Opt{report}) {
         last DISTRO if $CPAN::Testers::ParseReport::Signal;
     }
 } else {
-  DISTRO: for my $distro (@ARGV) {
-        CPAN::Testers::ParseReport::parse_distro($distro,%Opt);
-        last DISTRO if $CPAN::Testers::ParseReport::Signal;
-    }
+    CPAN::Testers::ParseReport::parse_distro($ARGV[0],%Opt);
 }
 
 __END__
