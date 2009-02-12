@@ -290,10 +290,13 @@ if ($Opt{dumpvars}) {
 
 $|=1;
 if (my $reports = delete $Opt{report}) {
-  REPORT: for my $report (@$reports) {
-        CPAN::Testers::ParseReport::parse_single_report({id => $report},+{},%Opt);
-        last DISTRO if $CPAN::Testers::ParseReport::Signal;
+    my $dumpvars = {};
+ REPORT: for my $report (@$reports) {
+        CPAN::Testers::ParseReport::parse_single_report({id => $report},$dumpvars,%Opt);
+        last REPORT if $CPAN::Testers::ParseReport::Signal;
     }
+    my $dumpfile = $Opt{dumpfile} || "ctgetreports.out";
+    YAML::Syck::DumpFile($dumpfile,$dumpvars);
 } else {
     CPAN::Testers::ParseReport::parse_distro($ARGV[0],%Opt);
 }
