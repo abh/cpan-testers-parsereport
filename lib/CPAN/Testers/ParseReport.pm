@@ -581,7 +581,6 @@ sub parse_report {
                     $v =~ s/^\s+//;
                     $v =~ s/\s+$//;
                     if ($qr && $ck =~ $qr) {
-                        $dumpvars->{$ck}{$v}{$ok}++;
                         $extract{$ck} = $v;
                     } elsif ($conf_vars{$ck}) {
                         $extract{$ck} = $v;
