@@ -374,11 +374,13 @@ sub parse_distro {
     }
 }
 
-=head2 parse_report($target,$dumpvars,%Opt)
+=head2 $extract = parse_report($target,$dumpvars,%Opt)
 
 Reads one report. $target is the local filename to read. $dumpvars is
-a hashref which gets filled. %Opt are the options as described in the
-C<ctgetreports> manpage.
+a hashref which gets filled with descriptive stats about
+PASS/FAIL/etc. %Opt are the options as described in the
+C<ctgetreports> manpage. $extract is a hashref containing the found
+variables.
 
 Note: this parsing is a bit dirty but as it seems good enough I'm not
 inclined to change it. We parse HTML with regexps only, not an HTML
@@ -742,6 +744,7 @@ sub parse_report {
             return;
         }
     }
+    return \%extract;
 }
 
 =head2 solve
