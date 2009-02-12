@@ -334,7 +334,7 @@ sub parse_distro {
         require Statistics::Regression;
         $Opt{dumpvars} = "." unless defined $Opt{dumpvars};
     }
-    if (!$Opt{vdistro} && $distro =~ /^(.+)-(?i:v?\d+)(?:\.\d+)*$/) {
+    if (!$Opt{vdistro} && $distro =~ /^(.+)-(?i:v?\d+)(?:\.\d+)*\w*$/) {
         $Opt{vdistro} = $distro;
         $distro = $1;
     }
