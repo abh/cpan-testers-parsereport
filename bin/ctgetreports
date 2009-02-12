@@ -124,8 +124,8 @@ Versioned distro, e.g.
 
   IPC-Run-0.80
 
-Legacy option, not needed anymore because since version 0.1.0 a
-versioned distro name can be specified as normal commandline argument.
+Usually not needed because a versioned distro name can be specified as
+normal commandline argument.
 
 =item B<--verbose|v+>
 
