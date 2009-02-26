@@ -298,6 +298,7 @@ if (my $reports = delete $Opt{report}) {
     my $dumpfile = $Opt{dumpfile} || "ctgetreports.out";
     YAML::Syck::DumpFile($dumpfile,$dumpvars);
 } else {
+    $ARGV[0] =~ s|.+/||;
     CPAN::Testers::ParseReport::parse_distro($ARGV[0],%Opt);
 }
 
