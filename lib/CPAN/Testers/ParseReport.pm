@@ -73,6 +73,7 @@ $dumpvar is a hashreference that gets filled with data.
         $ua = LWP::UserAgent->new
             (
              keep_alive => 1,
+             env_proxy => 1,
             );
         $ua->parse_head(0);
         $ua;
