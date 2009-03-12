@@ -74,7 +74,8 @@ WriteMakefile
                                    "all",
                                    "tardist",
                                   ),
-              COMPRESS => 'gzip -9',
+              COMPRESS => 'bzip2 -9',
+              SUFFIX => "bz2",
              },
      ($ExtUtils::MakeMaker::VERSION >= 6.4502 ?
       (META_ADD => {

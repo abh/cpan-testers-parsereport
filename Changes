@@ -1,4 +1,4 @@
-2009-02-06  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+2009-03-12  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.1.0
 
@@ -7,6 +7,14 @@
 
 	* allow a versioned distro name as argument, obsoletes the --vdistro
 	option.
+
+	* generate a conf:git_commit_id if possible
+
+	* honour proxy environment
+
+	* return the %extract hash from parse_report (suggested by Ask B. Hansen)
+
+	* minor bugfixes
 
 2008-12-30  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
