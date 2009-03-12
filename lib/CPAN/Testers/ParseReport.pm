@@ -481,7 +481,13 @@ sub parse_report {
                 $in_env_context = 0;
             }
         }
-        unless ($extract{"meta:perl"}) {
+        if ($extract{"meta:perl"}) {
+            if (    $in_summary
+                and !$extract{"conf:git_commit_id"}
+                and /Commit id: ([[:xdigit:]]+)/) {
+                $extract{"conf:git_commit_id"} = $1;
+            }
+        } else {
             my $p5;
             if (0) {
             } elsif (/Summary of my perl5 \((.+)\) configuration:/) {
