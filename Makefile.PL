@@ -74,8 +74,8 @@ WriteMakefile
                                    "all",
                                    "tardist",
                                   ),
-              COMPRESS => 'bzip2 -9',
-              SUFFIX => "bz2",
+              COMPRESS => 'bzip2 -9f',
+              SUFFIX => ".bz2",
              },
      ($ExtUtils::MakeMaker::VERSION >= 6.4502 ?
       (META_ADD => {
@@ -123,7 +123,7 @@ the-release-name :
 	$(NOECHO) $(ECHO) 'release-name ' $(DISTVNAME).tar$(SUFFIX)
 
 release ::
-	/usr/bin/perl -I../CPAN/GIT/trunk/release-lib -S release $(DISTVNAME).tar$(SUFFIX)
+	$(PERL) -I../CPAN/GIT/trunk/release-lib -S release $(DISTVNAME).tar$(SUFFIX)
 	rm -rf $(DISTVNAME)
 
 sign:
@@ -138,7 +138,7 @@ sub dist_test {
 # Makefile breaks our intent to NOT remake dist
 disttest :
 	rm -rf $(DISTVNAME)
-	tar xvzf $(DISTVNAME).tar$(SUFFIX)
+	tar xvjf $(DISTVNAME).tar$(SUFFIX)
 	cd $(DISTVNAME) && $(ABSPERLRUN) Makefile.PL
 	cd $(DISTVNAME) && $(MAKE) $(PASTHRU)
 	cd $(DISTVNAME) && $(MAKE) test $(PASTHRU)
