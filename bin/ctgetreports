@@ -65,6 +65,26 @@ is missing, skips missing report files.
 
 Pager (needed when -i is given). Defaults to C<less>.
 
+=item B<--parse-common-errors|pce>
+
+While the C<<--q qr:...> syntax ultimately offers free parsing it is
+cumbersome to use. The C<--parse-common-errors> option is a
+placeholder for a variety of frequent errors to watch. Currently it
+stands for the following additional options:
+
+  -q qr:(Failed test\s+\S+.*)
+  -q qr:(Failed to load .*)
+  -q qr:(Can't load .*)
+  -q qr:(.*could not find.*)
+  -q qr:(Can't locate object method .+)
+  -q qr:(Can't locate \S+pm)
+  -q qr:(Please\s+install\s+\S+)
+  -q qr:(You tried to run a test without a plan.*)
+  -q qr:(.*Server didn't start.*)
+  -q qr:(You planned.*)
+
+This list is subject to change in future releases.
+
 =item B<--q=s@>
 
 Query, may be repeated.
@@ -285,6 +305,15 @@ if ($Opt{dumpvars}) {
     eval { require YAML::Syck };
     if ($@) {
         die "YAML::Syck required for dumpvars option: $@";
+    }
+}
+
+if ($Opt{"parse-common-errors"}) {
+    $Opt{q} ||= [];
+    my($para) = grep {/^\s+-q qr:/} split /\n\n/, $optpod;
+    for my $line (split /\n/, $para) {
+        my($qr) = $line =~ /-q (qr:.*)/;
+        push @{$Opt{q}}, $qr;
     }
 }
 
