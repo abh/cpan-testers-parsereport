@@ -1,3 +1,14 @@
+2009-03-29  Andreas J. Koenig  <andk@cpan.org> 
+
+	* release 0.1.1
+
+	* add the parsed prerequisites wanted version number to the result with
+	the prefix C<prereq:> (popular Birmingham hackathon demand)
+
+	* added a bin/conf2conf.pl script developed by H.Merijn Brand during
+	Birmingham hackathon. This will probably end up as a sub in
+	ParseReport.pm, needs to be decided later.
+
 2009-03-12  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.1.0

@@ -15,19 +15,17 @@ my $plan;
     my $article = <$fh>;
     close $fh;
     my $dump = {};
-    $DB::single++;
     CPAN::Testers::ParseReport::parse_report(1234567, $dump, article => $article, solve => 1, quiet => 1);
-    $DB::single++;
     my $keys = keys %{$dump->{"==DATA=="}[0]};
     ok($keys >= 39, "found at least 39, actually [$keys] keys");
 }
 
 {
     BEGIN {
-        $plan += 5;
+        $plan += 6;
     }
     my %Opt = (
-               'q' => ["meta:perl", "meta:from", "qr:(Undefined.*)"],
+               'q' => ["meta:perl", "meta:from", "qr:(Undefined.*)", "prereq:Test::More"],
                'local' => 1,
                'cachedir' => 't/var',
                'quiet' => 1,
@@ -42,6 +40,7 @@ my $plan;
     my $count = sum map {values %{$Y->{"meta:from"}{$_}}} keys %{$Y->{"meta:from"}};
     is($count, 130, "found $count==130 reports via meta:from");
     is($Y->{"meta:ok"}{PASS}{PASS}, 79, "found 79 PASS");
+    is($Y->{"prereq:Test::More"}{0}{PASS}, 70, "found 70 PASS on prereq Test::More==0");
     ok(!$Y->{"env:alignbytes"}, "there is no such thing as an environment alignbytes");
     my $undefined = $Y->{'qr:(Undefined.*)'};
     my($the_warning) = grep {length} keys %$undefined;

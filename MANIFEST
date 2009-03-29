@@ -1,3 +1,4 @@
+bin/conf2conf.pl
 bin/ctgetreports
 bin/ctsolvereports
 Changes

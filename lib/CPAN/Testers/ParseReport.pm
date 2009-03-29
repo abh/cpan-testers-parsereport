@@ -612,9 +612,10 @@ sub parse_report {
         push @previous_line, $_;
         if ($expect_prereq || $expect_toolchain) {
             if (exists $moduleunpack->{type}) {
-                my($module,$v);
+                my($module,$v,$needwant);
+                # type 1 and 2 are about prereqs, type three about toolchain
                 if ($moduleunpack->{type} == 1) {
-                    (my $leader,$module,undef,$v) = eval { unpack $moduleunpack->{tpl}, $_; };
+                    (my $leader,$module,$needwant,$v) = eval { unpack $moduleunpack->{tpl}, $_; };
                     next LINE if $@;
                     if ($leader =~ /^-/) {
                         $moduleunpack = {};
@@ -630,7 +631,7 @@ sub parse_report {
                         next LINE;
                     }
                 } elsif ($moduleunpack->{type} == 2) {
-                    (my $leader,$module,$v) = eval { unpack $moduleunpack->{tpl}, $_; };
+                    (my $leader,$module,$v,$needwant) = eval { unpack $moduleunpack->{tpl}, $_; };
                     next LINE if $@;
                     if ($leader =~ /^\*/) {
                         $moduleunpack = {};
@@ -658,6 +659,11 @@ sub parse_report {
                         next LINE;
                     }
                     $extract{"mod:$module"} = $v;
+                    if ($needwant) {
+                        $needwant =~ s/^\s+//;
+                        $needwant =~ s/\s+$//;
+                        $extract{"prereq:$module"} = $needwant;
+                    }
                 }
             }
             if (/(\s+)(Module\s+)(Need\s+)Have/) {
@@ -674,7 +680,7 @@ sub parse_report {
                 # two pass would be required to see where the
                 # columns really are. Or could we get away with split?
                 $moduleunpack = {
-                                 tpl => 'a'.length($1).'a'.(length($2)+$adjust_2).'a'.(length($3)+$adjust_3),
+                                 tpl => 'a'.length($1).'a'.(length($2)+$adjust_2).'a'.(length($3)+$adjust_3).'a*',
                                  type => 2,
                                 };
             }
