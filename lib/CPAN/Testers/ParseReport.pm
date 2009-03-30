@@ -3,6 +3,7 @@ package CPAN::Testers::ParseReport;
 use warnings;
 use strict;
 
+use Config::Perl::V ();
 use DateTime::Format::Strptime;
 use DateTime::Format::DateParse;
 use File::Basename qw(basename);
@@ -28,7 +29,7 @@ CPAN::Testers::ParseReport - parse reports to www.cpantesters.org from various s
 
 =cut
 
-use version; our $VERSION = qv('0.1.1');
+use version; our $VERSION = qv('0.1.2');
 
 =head1 SYNOPSIS
 
