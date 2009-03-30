@@ -1,5 +1,6 @@
 #!perl -- -*- mode: cperl -*-
 
+use strict;
 use Test::More;
 use File::Spec;
 use CPAN::Testers::ParseReport;
@@ -46,6 +47,30 @@ my $plan;
     my($the_warning) = grep {length} keys %$undefined;
     ok($undefined,"found warning: '$the_warning'");
     like($the_warning, qr/&main::/, "the ampersand is escaped");
+}
+
+{
+    BEGIN {
+        $plan += 3;
+    }
+    my %Opt = (
+               'q' => ["meta:perl", "meta:from", "conf:git_commit_id", "env:PERL5_MINISMOKEBOX"],
+               'local' => 1,
+               'cachedir' => 't/var',
+               'quiet' => 1,
+               'dumpvars' => ".",
+               'report' => '3521214',
+              );
+    my $dumpvars = {};
+    my $extract = CPAN::Testers::ParseReport::parse_report
+          (
+           "t/var/nntp-testers/3521214",
+           $dumpvars,
+           %Opt,
+          );
+    is $extract->{'conf:git_commit_id'}, '245490700bb744b58c708516d2d3c08f18583dc3', "found git commit id";
+    is $extract->{'env:AUTOMATED_TESTING'}, '1', "automated testing was set";
+    is $extract->{'meta:date'}, '2009-03-20T03:29:23', "date in iso format";
 }
 
 {
