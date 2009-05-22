@@ -74,6 +74,30 @@ my $plan;
 }
 
 {
+    BEGIN {
+        $plan += 3;
+    }
+    my %Opt = (
+               'q' => ["meta:perl", "meta:from", "mod:Storable", "env:AUTOMATED_TESTING"],
+               'local' => 1,
+               'cachedir' => 't/var',
+               'quiet' => 1,
+               'dumpvars' => ".",
+               'report' => '3851138',
+              );
+    my $dumpvars = {};
+    my $extract = CPAN::Testers::ParseReport::parse_report
+          (
+           "t/var/nntp-testers/3851138",
+           $dumpvars,
+           %Opt,
+          );
+    like $extract->{'conf:archname'}, qr/64int/, "found 64int on archname";
+    is $extract->{'env:AUTOMATED_TESTING'}, '1', "automated testing was set";
+    is $extract->{'mod:Storable'}, '2.18', "Storable version";
+}
+
+{
     BEGIN { $plan += 1 }
     open my $fh, "-|", qq{"$^X" "-Ilib" "bin/ctgetreports" "--local" "--cachedir" "t/var" "--solve" "--quiet" "Scriptalicious" 2>&1} or die "could not fork: $!";
     my @reg;
