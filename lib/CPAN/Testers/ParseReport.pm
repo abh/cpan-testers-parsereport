@@ -11,6 +11,7 @@ use File::Path qw(mkpath);
 use HTML::Entities qw(decode_entities);
 use LWP::UserAgent;
 use List::Util qw(max min sum);
+use MIME::QuotedPrint ();
 use Net::NNTP ();
 use Time::Local ();
 use XML::LibXML;
@@ -418,7 +419,14 @@ sub parse_report {
         local $/;
         my $raw_report = <$fh>;
         $isHTML = $raw_report =~ /^</;
-        $report = $isHTML ? decode_entities($raw_report) : $raw_report;
+        if ($isHTML) {
+            $report = decode_entities($raw_report);
+        } elsif ($raw_report =~ /^MIME-Version: 1.0$/m) {
+            # minimizing MIME effort; don't know about reports in other formats
+            $report = MIME::QuotedPrint::decode_qp($raw_report);
+        } else {
+            $report = $raw_report;
+        }
         close $fh;
     }
     my @qr = map /^qr:(.+)/, @{$Opt{q}};

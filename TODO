@@ -1,3 +1,14 @@
+2009-05-22  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* while releasing the MIME fix discovered a wrongly broken long line in
+	3876519 which isn't parsed "correctly". I mean the line is buggy in
+	itself and our way to parse it doesn't correct for the bug in the
+	original report. No time and inclination to deal with that. Here are the
+	lines for a reference:
+
+    config_args='-sde -Darchname=powerpc-netbsd -Dcc=cc -Doptimize=-O2 -pthread -I/usr/include -Ui_malloc -Uusemymalloc -Uinstallusrbinperl -Dinstallstyle=lib/perl5 -Dprefix=/usr/pkg -Dsiteprefix=/usr/pkg -Dvendorprefix=/usr/pkg -Dscriptdir=/usr/pkg/lib/perl5/bin -Dsitescript=/usr/pkg/lib/perl5/site_perl/bin -Dvendorscript=/usr/pkg/lib/perl5/vendor_perl/bin -Dsitebin=/usr/pkg/lib/perl5/site_perl/bin -Dvendorbin=/usr/pkg/lib/perl5/vendor_perl/bin -Dprivlib=/usr/pkg/lib/perl5/5.10.0 -Dsitelib=/usr/pkg/lib/perl5/site_perl/5.10.0 -Dvendorlib=/usr/pkg/lib/perl5/vendor_perl/5.10.0 -Dsitelib_stem=/usr/pkg/lib/perl5/site_perl -Dvendorlib_stem=/usr/pkg/lib/perl5/vendor_perl -Dman1ext=1 -Dman1dir=/usr/pkg/lib/perl5/man/man1 -Dsiteman1dir=/usr/pkg/lib/perl5/site_perl/man/man1 -Dvendorman1dir=/usr/pkg/lib/perl5/vendor_perl/man/man1 -Dman3ext=3 -Dman3dir=/usr/pkg/lib/perl5/man/man3 -Dsiteman3dir=/usr/pkg/lib/perl5/site_perl/man/man3 -Dvendorman3dir=/usr/pkg/lib/perl5/vendor_perl/man/man3 
+ -Duseshrplib -Daphostname=/bin/hostname -Dln=/bin/ln -Dsed=/usr/bin/sed -Dsh=/bin/sh -Dissymlink=test -h -Dperl5=false -Duseithreads -Dlibswanted=m crypt '
+
 2008-12-18  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* collect oneliners. here we filter the testreports from

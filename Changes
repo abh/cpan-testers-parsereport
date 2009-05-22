@@ -1,3 +1,10 @@
+2009-05-22  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
+
+	* release 0.1.2
+
+	* Fix parsing of files with a MIME-Version header which comes from
+	recent improvements on the Test::Reporter end.
+
 2009-03-29  Andreas J. Koenig  <andk@cpan.org> 
 
 	* release 0.1.1
