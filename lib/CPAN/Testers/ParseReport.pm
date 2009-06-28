@@ -256,7 +256,7 @@ sub _parse_yaml {
         $excuse_string = "any distro";
         my $last_addition;
         my %seen;
-        for my $report (@$arr) {
+        for my $report (sort { $a->{id} <=> $b->{id} } @$arr) {
             unless ($seen{$report->{distversion}}++) {
                 $last_addition = $report->{distversion};
             }
