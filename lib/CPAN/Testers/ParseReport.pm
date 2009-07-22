@@ -472,7 +472,7 @@ sub parse_report {
     }
  LINE: while (@rlines) {
         $_ = shift @rlines;
-        while (/!$/) {
+        while (/!$/ and @rlines) {
             my $followupline = shift @rlines;
             $followupline =~ s/^\s+//; # remo leading space
             $_ .= $followupline;

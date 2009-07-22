@@ -1,3 +1,6 @@
+  * Avoid infinite loop if the last line of a report ends with
+	  a '!' (Ask Bjørn Hansen)
+
 2009-06-28  Andreas J. Koenig  <andreas.koenig.7os6VVqR@franz.ak.mind.de>
 
 	* release 0.1.3
