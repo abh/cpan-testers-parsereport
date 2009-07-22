@@ -550,7 +550,7 @@ sub parse_report {
                 } else {
                     # Sun, 28 Sep 2008 12:23:12 +0100 # but was not consistent
                     # pattern => "%a, %d %b %Y %T %z",
-                    $dt = DateTime::Format::DateParse->parse_datetime($date);
+                    $dt = eval { DateTime::Format::DateParse->parse_datetime($date) };
                 }
                 unless ($dt) {
                     warn "Could not parse date[$date], setting to epoch 0";
